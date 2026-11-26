@@ -2,7 +2,9 @@
 
 A public source-backup shelf for browser games, kept separate from the playable [Games](https://github.com/bear20252026/games) library.
 
-This repository stores editable projects, not live deployments. It is not connected to GitHub Pages.
+This repository stores editable projects. The source is the primary artifact; GitHub Pages hosts a build of the current source for quick inspection.
+
+**Live preview:** <https://bear20252026.github.io/games-backup/>
 
 ## 01 · Curllmooha
 
@@ -11,6 +13,7 @@ An editable reconstruction of [curllmooha.com](https://www.curllmooha.com/): a T
 - **Editable source:** [`curllmooha-editable/`](./curllmooha-editable/)
 - **Complete archive:** [`archives/curllmooha-editable.zip`](./archives/curllmooha-editable.zip)
 - **Upstream site:** <https://www.curllmooha.com/>
+- **Pages build:** the `Pages` workflow runs `vite build --base=/games-backup/`, normalises the source's root-absolute asset URLs, and publishes the output.
 - **Project notes:** [`curllmooha-editable/README.md`](./curllmooha-editable/README.md)
 - **Run:** `npm install && npm run dev` → <http://127.0.0.1:8899>
 - **Build:** `npm run build` → `dist/`
