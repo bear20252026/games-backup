@@ -1,0 +1,677 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Hologram Shader – Three.js Real-Time Shader Experiment by Vipin Pathak</title>
+    <meta name="description" content="A neon hologram laboratory where spacecraft flicker through scan lines, distortion and a reactive digital grid. Built by Vipin Pathak, a Three.js developer, with three.js, glsl, leva." />
+    <meta name="author" content="Vipin Pathak" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#f4f4f0" />
+    <meta name="color-scheme" content="light" />
+    <link rel="canonical" href="https://www.curllmooha.com/work/hologram/" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/inter-tight-latin-DX-nOvPD.woff2" />
+    <link rel="preload" as="image" href="/work/hologram/1-1600.webp" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Curllmooha" />
+    <meta property="og:title" content="Hologram Shader – Three.js Real-Time Shader Experiment by Vipin Pathak" />
+    <meta property="og:description" content="A neon hologram laboratory where spacecraft flicker through scan lines, distortion and a reactive digital grid. Built by Vipin Pathak, a Three.js developer, with three.js, glsl, leva." />
+    <meta property="og:url" content="https://www.curllmooha.com/work/hologram/" />
+    <meta property="og:image" content="https://www.curllmooha.com/work/hologram/1-1600.webp" />
+    <meta property="og:image:width" content="1600" />
+    <meta property="og:image:height" content="900" />
+    <meta property="og:image:alt" content="a blue wireframe hologram of a spacecraft hovering above a hexagonal grid" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@curllmooha" />
+    <meta name="twitter:creator" content="@curllmooha" />
+    <style>/* The plain pages' shared look: the /hire/ and /work/ pages, the 404 page and
+   the flat portfolio. Paper white and ink black, set in Inter Tight, with
+   buttons that fill from wherever the pointer enters them.
+
+   Everything is scoped under .fx so this can ride along in the meadow's own
+   stylesheet (for the flat portfolio) without touching the HUD. The project
+   and hire pages inline this file at build time (src/work/workPage.js reads
+   it), 404.html and main.jsx import it. The magnetic pull and the fill's
+   entry point come from flat.js; without it every hover here still works,
+   the fill just grows from below.
+
+   No cursor rules: the paper dart from index.html carries over on the
+   flat portfolio, and the other pages set it in their own <head>. */
+
+@font-face {
+    font-family: 'Inter Tight';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/assets/inter-tight-latin-DX-nOvPD.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Inter Tight';
+    font-style: italic;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/assets/inter-tight-latin-italic-DiXukCDG.woff2') format('woff2');
+}
+
+.fx {
+    --fx-paper: #f4f4f0;
+    --fx-ink: #0b0b0b;
+    --fx-body: #2b2b29;
+    /* Both pass 4.5:1 on the paper for small text (5.3 and 4.9). */
+    --fx-muted: #66665f;
+    --fx-faint: #6b6b64;
+    --fx-line: #dcdcd4;
+    --fx-soft: #e9e9e2;
+    /* The one colour: the availability dot, and at most one word a page. */
+    --fx-green: #19a35b;
+    --fx-ease: cubic-bezier(0.65, 0, 0.35, 1);
+    --fx-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+    color: var(--fx-body);
+    font-family: 'Inter Tight', 'Helvetica Neue', Arial, system-ui, sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    letter-spacing: -0.005em;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+}
+
+.fx :where(h1, h2, h3) {
+    color: var(--fx-ink);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+    text-wrap: balance;
+}
+
+.fx :where(a) {
+    color: inherit;
+    text-decoration: none;
+}
+
+.fx :focus-visible {
+    outline: 2px solid var(--fx-ink);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.fx ::selection {
+    background: var(--fx-ink);
+    color: var(--fx-paper);
+}
+
+/* ---- eyebrow ---- */
+
+.fx-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    color: var(--fx-muted);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.fx-eyebrow::before {
+    content: '';
+    width: 1.6rem;
+    height: 1px;
+    background: currentColor;
+}
+
+/* ---- availability ---- */
+
+.fx-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    padding: 0.4rem 0.9rem 0.4rem 0.75rem;
+    border: 1px solid var(--fx-line);
+    border-radius: 999px;
+    color: var(--fx-ink);
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.fx-status i {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--fx-green);
+    animation: fx-pulse 2.4s ease-out infinite;
+}
+
+@keyframes fx-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(25, 163, 91, 0.45); }
+    70%, 100% { box-shadow: 0 0 0 0.5rem rgba(25, 163, 91, 0); }
+}
+
+/* ---- buttons ----
+
+   <a class="fx-btn"><span class="fx-btn__fill"></span>
+     <span class="fx-btn__label" data-label="say hi →"><span>say hi →</span></span></a>
+
+   The label rolls up and a second copy (::after) rolls in from below while
+   the fill floods the pill, so the hover state reads in the inverse colours.
+   --fx-x / --fx-y place the fill's centre where the pointer came in. */
+
+.fx-btn {
+    --fx-btn-bg: var(--fx-ink);
+    --fx-btn-fg: var(--fx-paper);
+    --fx-btn-fill: var(--fx-paper);
+    --fx-btn-fg-hover: var(--fx-ink);
+
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3.4rem;
+    padding: 0 1.75rem;
+    overflow: hidden;
+    border: 1px solid var(--fx-btn-bg);
+    border-radius: 999px;
+    background: var(--fx-btn-bg);
+    color: var(--fx-btn-fg);
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    will-change: transform;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Over a light page, a ghost pill: ink outline that floods ink. */
+.fx-btn--ghost {
+    --fx-btn-fg: var(--fx-ink);
+    --fx-btn-fill: var(--fx-ink);
+    --fx-btn-fg-hover: var(--fx-paper);
+    border-color: var(--fx-ink);
+    background: transparent;
+}
+
+/* On an ink panel: a paper pill that floods ink. */
+.fx-btn--light {
+    --fx-btn-bg: var(--fx-paper);
+    --fx-btn-fg: var(--fx-ink);
+    --fx-btn-fill: #262624;
+    --fx-btn-fg-hover: var(--fx-paper);
+}
+
+.fx-btn__fill {
+    position: absolute;
+    z-index: -1;
+    left: var(--fx-x, 50%);
+    top: var(--fx-y, 120%);
+    width: 260%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--fx-btn-fill);
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.6s var(--fx-ease);
+    pointer-events: none;
+}
+
+.fx-btn__label {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    padding-block: 0.15em;
+}
+
+.fx-btn__label > span,
+.fx-btn__label::after {
+    display: block;
+    transition: transform 0.55s var(--fx-ease);
+}
+
+.fx-btn__label::after {
+    content: attr(data-label);
+    /* Empty alt text: the copy is decoration, so a screen reader reads the
+       label once. Browsers without the syntax keep the line above. */
+    content: attr(data-label) / '';
+    position: absolute;
+    inset: 0.15em 0 auto;
+    color: var(--fx-btn-fg-hover);
+    transform: translateY(130%);
+}
+
+@media (hover: hover) {
+    .fx-btn:hover .fx-btn__fill {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    .fx-btn:hover .fx-btn__label > span {
+        transform: translateY(-130%);
+    }
+
+    .fx-btn:hover .fx-btn__label::after {
+        transform: translateY(0);
+    }
+}
+
+.fx-btn:active {
+    transform: scale(0.97);
+}
+
+/* ---- links ----
+
+   An underline that runs off to the right and draws back in from the left. */
+
+.fx-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding-bottom: 0.15rem;
+    background: linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat;
+    color: var(--fx-ink);
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.fx-link i {
+    font-style: normal;
+    transition: transform 0.45s var(--fx-out);
+}
+
+@media (hover: hover) {
+    .fx-link:hover {
+        animation: fx-underline 0.7s var(--fx-ease);
+    }
+
+    .fx-link:hover i {
+        transform: translateX(3px);
+    }
+}
+
+@keyframes fx-underline {
+    0% { background-position: right bottom; background-size: 100% 1px; }
+    45% { background-position: right bottom; background-size: 0% 1px; }
+    55% { background-position: left bottom; background-size: 0% 1px; }
+    100% { background-position: left bottom; background-size: 100% 1px; }
+}
+
+/* Plain inline links inside prose. */
+.fx-prose a {
+    color: var(--fx-ink);
+    background: linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat;
+    padding-bottom: 0.05em;
+}
+
+@media (hover: hover) {
+    .fx-prose a:hover {
+        animation: fx-underline 0.7s var(--fx-ease);
+    }
+}
+
+/* ---- emphasis ----
+
+   The few words a heading leans on: thin italic, set a shade lighter. Used
+   once or twice a page, never in running text. --accent takes the green. */
+
+.fx em,
+.fx-em {
+    font-style: italic;
+    font-weight: 250;
+    letter-spacing: -0.03em;
+    color: var(--fx-muted);
+}
+
+.fx-em--accent {
+    color: var(--fx-green);
+}
+
+/* ---- doodles ----
+
+   Hand-drawn strokes. Fully drawn by default (no script, reduced motion);
+   flat.js hides them and draws each one on as it scrolls into view. */
+
+.fx-doodle {
+    display: block;
+    overflow: visible;
+}
+
+.fx-js .fx-doodle path:not(.fx-route) {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+}
+
+.fx-js .fx-doodle.is-drawn path:not(.fx-route) {
+    animation: fx-draw 1.1s var(--fx-ease) forwards;
+    animation-delay: var(--d, 0s);
+}
+
+@keyframes fx-draw {
+    to { stroke-dashoffset: 0; }
+}
+
+/* Once drawn, the sparkle keeps a slow breath. */
+.fx-doodle--sparkle.is-drawn {
+    animation: fx-twinkle 3.2s ease-in-out 1.4s infinite;
+}
+
+@keyframes fx-twinkle {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(0.82) rotate(18deg); }
+}
+
+/* ---- badge ----
+
+   Words round a circle, turning. flat.js speeds the turn under the pointer. */
+
+.fx-badge {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 8.5rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    color: var(--fx-ink);
+}
+
+.fx-badge svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: fx-spin 16s linear infinite;
+}
+
+.fx-badge text {
+    fill: currentColor;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.fx-badge span {
+    display: grid;
+    place-items: center;
+    width: 3.2rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--fx-ink);
+    color: var(--fx-paper);
+    font-size: 1.2rem;
+    transition: transform 0.6s var(--fx-out), background-color 0.3s ease;
+}
+
+@media (hover: hover) {
+    .fx-badge:hover span {
+        transform: rotate(45deg) scale(1.12);
+        background: var(--fx-green);
+    }
+}
+
+@keyframes fx-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ---- email row ----
+
+   emailRow() in markup.js, on an ink panel. */
+
+.fx-email {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.fx-email .fx-btn {
+    max-width: 100%;
+}
+
+/* The copy button only exists to scripts that can copy. */
+.fx-copy {
+    display: none;
+    align-items: center;
+    min-height: 3.4rem;
+    padding: 0 1.4rem;
+    border: 1px solid #3a3a37;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fx-paper);
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.fx-js .fx-copy {
+    display: inline-flex;
+}
+
+.fx-copy:hover {
+    border-color: var(--fx-paper);
+}
+
+.fx-copy.is-done {
+    border-color: var(--fx-green);
+    background: var(--fx-green);
+    color: var(--fx-ink);
+}
+
+.fx-copy.is-done .fx-copy__label {
+    font-size: 0;
+}
+
+.fx-copy.is-done .fx-copy__label::after {
+    content: attr(data-done);
+    font-size: 0.92rem;
+}
+
+/* ---- smooth scroll ----
+
+   Lenis's own required rules (flat.js starts it). It adds these classes to
+   <html>, so the meadow, which never starts it, is untouched. */
+
+html.lenis,
+html.lenis body {
+    height: auto;
+}
+
+.lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+    overflow: clip;
+}
+
+/* ---- reveals ----
+
+   Images below the fold open from the bottom edge as they arrive, the
+   picture settling from a slight zoom. Only with flat.js running (.fx-js);
+   without it they are simply there. */
+
+.fx-js .fx-reveal {
+    clip-path: inset(18% 0 0 0 round var(--fx-radius, 20px));
+    transition: clip-path 1.2s var(--fx-out);
+}
+
+.fx-js .fx-reveal > img,
+.fx-js .fx-reveal > video {
+    transform: scale(1.12);
+    transition: transform 1.6s var(--fx-out);
+}
+
+.fx-js .fx-reveal.is-in {
+    clip-path: inset(0 0 0 0 round var(--fx-radius, 20px));
+}
+
+.fx-js .fx-reveal.is-in > img,
+.fx-js .fx-reveal.is-in > video {
+    transform: scale(1);
+}
+
+/* ---- cursor trail ----
+
+   A fading pencil line behind the paper dart, drawn by flat.js. */
+
+.fx-trail {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    mix-blend-mode: difference;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fx *,
+    .fx *::before,
+    .fx *::after {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+html, body { margin: 0; background: #f4f4f0; }
+@media (hover: hover) and (pointer: fine) {
+  html { cursor: -webkit-image-set(url('/cursors/paper-dart.svg') 1x, url('/cursors/paper-dart@2x.svg') 2x) 5 4, default; }
+  a[href], button, summary { cursor: -webkit-image-set(url('/cursors/paper-dart.svg') 1x, url('/cursors/paper-dart@2x.svg') 2x) 5 4, pointer; }
+}
+.pg { max-width: 72rem; margin-inline: auto; padding: 0 clamp(1.1rem, 5vw, 3rem) 3rem; }
+/* Zero specificity, so every component's own margin wins over it. */
+:where(.pg) :where(p, ul, ol, dl, figure, h1, h2, h3) { margin: 0; }
+.pg-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: clamp(1.2rem, 3vw, 1.8rem); }
+.pg-brand { display: inline-flex; align-items: baseline; gap: 0.5rem; color: var(--fx-ink); font-weight: 600; letter-spacing: -0.02em; }
+.pg-brand small { color: var(--fx-muted); font-size: 0.85rem; font-weight: 400; letter-spacing: 0; }
+.pg-top .fx-btn { min-height: 2.6rem; padding: 0 1.15rem; font-size: 0.9rem; }
+.pg-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; margin-top: clamp(4rem, 10vw, 7rem);
+  padding-top: 1.6rem; border-top: 1px solid var(--fx-line); color: var(--fx-muted); font-size: 0.9rem; }
+.pg-foot__links { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; padding: 0; list-style: none; }
+.pg-foot__links .fx-link { font-size: 0.9rem; }
+@media (max-width: 30rem) { .pg-brand small { display: none; } }
+
+.wk-hero { position: relative; padding-top: clamp(2.5rem, 9vw, 6rem); }
+.wk-hero h1 { margin-top: 1.4rem; font-size: clamp(3.4rem, 13vw, 10rem); line-height: 0.96; letter-spacing: -0.06em; }
+.wk-hero .fx-doodle--sparkle { position: absolute; right: clamp(0rem, 4vw, 4rem); top: clamp(3rem, 10vw, 7rem); width: clamp(2rem, 5vw, 3.5rem); color: var(--fx-ink); }
+.wk-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.4rem 2rem; margin-top: clamp(2rem, 5vw, 3.5rem); padding-top: 1.4rem; border-top: 1px solid var(--fx-line); }
+.wk-meta dt { color: var(--fx-muted); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.wk-meta dd { margin: 0.35rem 0 0; color: var(--fx-ink); font-weight: 500; }
+@media (min-width: 52rem) { .wk-meta { grid-template-columns: 1.1fr 1fr 1.3fr auto; align-items: end; } }
+.wk-media { position: relative; margin-top: clamp(2.5rem, 6vw, 4rem); --fx-radius: clamp(14px, 2vw, 26px); }
+.wk-frame { position: relative; border-radius: var(--fx-radius); overflow: hidden; background: var(--fx-soft); aspect-ratio: 16 / 9; }
+.wk-frame img, .wk-frame video { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* The launch button: a round seal over the frame's corner, magnetic like
+   every .fx-btn, with the label set round it. */
+.wk-launch { position: absolute; z-index: 2; right: clamp(1rem, 4vw, 3rem); bottom: 0; translate: 0 50%; }
+.wk-launch .fx-btn { width: clamp(7rem, 14vw, 9.5rem); height: clamp(7rem, 14vw, 9.5rem); min-height: 0; padding: 0; border-radius: 50%;
+  box-shadow: 0 0 0 clamp(6px, 1vw, 10px) var(--fx-paper); font-size: clamp(0.9rem, 1.4vw, 1.02rem); }
+.wk-launch .fx-btn__fill { width: 160%; }
+.wk-lede { position: relative; max-width: 50rem; margin-top: clamp(5rem, 12vw, 8rem); color: var(--fx-ink); font-size: clamp(1.45rem, 3.4vw, 2.3rem); line-height: 1.22; letter-spacing: -0.035em; }
+.wk-gallery { display: grid; gap: clamp(0.8rem, 2vw, 1.5rem); margin-top: clamp(4rem, 9vw, 6rem); --fx-radius: clamp(12px, 1.8vw, 22px); }
+.wk-gallery figure { margin: 0; border-radius: var(--fx-radius); overflow: hidden; background: var(--fx-soft); aspect-ratio: 16 / 9; }
+.wk-gallery img { display: block; width: 100%; height: 100%; object-fit: cover; }
+@media (min-width: 44rem) { .wk-gallery { grid-template-columns: 1fr 1fr; } .wk-gallery figure:first-child { grid-column: 1 / -1; } }
+.wk-rows { margin-top: clamp(4rem, 9vw, 6rem); border-top: 1px solid var(--fx-ink); }
+.wk-row { display: grid; gap: 0.6rem 2rem; padding-block: clamp(1.4rem, 3vw, 2rem); border-bottom: 1px solid var(--fx-line); }
+.wk-row h2 { color: var(--fx-muted); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.6; }
+.wk-row p { max-width: 42rem; }
+.wk-list { padding: 0; list-style: none; display: grid; gap: 0.45rem; max-width: 42rem; }
+.wk-list li { position: relative; padding-left: 1.3rem; }
+.wk-list li::before { content: ''; position: absolute; left: 0; top: 0.75em; width: 0.5rem; height: 1px; background: var(--fx-ink); }
+.wk-tools { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; list-style: none; }
+.wk-tools li { padding: 0.3rem 0.8rem; border: 1px solid var(--fx-line); border-radius: 999px; color: var(--fx-ink); font-size: 0.9rem; transition: border-color 0.3s ease, transform 0.5s var(--fx-out); }
+@media (hover: hover) { .wk-tools li:hover { border-color: var(--fx-ink); transform: translateY(-2px); } }
+@media (min-width: 48rem) { .wk-row { grid-template-columns: 14rem 1fr; } }
+.wk-nav { display: grid; grid-template-columns: 1fr 1fr; margin-top: clamp(4rem, 10vw, 7rem); border-block: 1px solid var(--fx-line); }
+.wk-nav a { display: grid; gap: 0.4rem; padding: clamp(1.4rem, 4vw, 2.6rem) 0; }
+.wk-nav a + a { padding-left: clamp(1rem, 3vw, 2rem); border-left: 1px solid var(--fx-line); text-align: right; }
+.wk-nav small { color: var(--fx-muted); font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.wk-nav strong { color: var(--fx-ink); font-size: clamp(1.4rem, 4.5vw, 3.2rem); font-weight: 600; letter-spacing: -0.045em; line-height: 1.02;
+  transition: transform 0.6s var(--fx-out); }
+.wk-nav strong em { display: block; margin-top: 0.15rem; font-size: 0.45em; }
+.wk-nav a:first-child:hover strong { transform: translateX(-6px); }
+.wk-nav a + a:hover strong { transform: translateX(6px); }
+</style>
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"CreativeWork","@id":"https://www.curllmooha.com/#project-hologram","name":"hologram shader","description":"a neon hologram laboratory where spacecraft flicker through scan lines, distortion and a reactive digital grid.","url":"https://holo-mocha.vercel.app/","mainEntityOfPage":"https://www.curllmooha.com/work/hologram/","image":"https://www.curllmooha.com/work/hologram/1-1600.webp","genre":"real-time shader experiment","dateCreated":"2025","keywords":"three.js, glsl, leva","creator":{"@type":"Person","@id":"https://www.curllmooha.com/#vipin","name":"Vipin Pathak","url":"https://www.curllmooha.com/"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Vipin Pathak – 3D portfolio","item":"https://www.curllmooha.com/"},{"@type":"ListItem","position":2,"name":"hologram shader","item":"https://www.curllmooha.com/work/hologram/"}]}]}</script>
+    <script type="module" src="/src/pages/flat.js"></script>
+  </head>
+  <body>
+    <div class="fx pg" data-fx-auto>
+      <header class="pg-top">
+        <a class="pg-brand" href="/">vipin pathak <small>3d portfolio</small></a>
+        <a class="fx-btn fx-btn--ghost" href="/hire/"><span class="fx-btn__fill" aria-hidden="true"></span><span class="fx-btn__label" data-label="work with me"><span>work with me</span></span></a>
+      </header>
+
+      <main>
+        <header class="wk-hero">
+          <p class="fx-eyebrow">2025 · personal project</p>
+          <h1>hologram shader</h1>
+          <svg class="fx-doodle fx-doodle--sparkle" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 3 C21 15 25 19 37 20 C25 21 21 25 20 37 C19 25 15 21 3 20 C15 19 19 15 20 3 Z" stroke-width="2" pathLength="1" style="--d:0.2s" /></svg>
+          <dl class="wk-meta">
+            <div><dt>type</dt><dd>real-time shader experiment</dd></div>
+            <div><dt>my part</dt><dd>shader design &amp; creative development</dd></div>
+            <div><dt>built with</dt><dd>three.js, glsl, leva</dd></div>
+            <div><dd><a class="fx-link" href="/#project-hologram">open it in the meadow<i aria-hidden="true">&#8594;</i></a></dd></div>
+          </dl>
+        </header>
+
+        <div class="wk-media">
+          <div class="wk-frame">
+            <video src="/work/hologram/clip.mp4" poster="/work/hologram/1-1600.webp" autoplay muted loop playsinline preload="metadata" aria-label="hologram shader, running"></video>
+          </div>
+          <div class="wk-launch">
+            <a class="fx-btn" href="https://holo-mocha.vercel.app/" rel="noopener" aria-label="launch hologram shader"><span class="fx-btn__fill" aria-hidden="true"></span><span class="fx-btn__label" data-label="launch ↗"><span>launch ↗</span></span></a>
+          </div>
+        </div>
+
+        <p class="wk-lede">a neon hologram laboratory where spacecraft flicker through scan lines, distortion and a reactive digital grid.</p>
+
+        <div class="wk-gallery">
+          <figure class="fx-reveal"><img src="/work/hologram/2-1600.webp" srcset="/work/hologram/2-1600.webp 1600w, /work/hologram/2-3840.webp 3840w" sizes="(min-width: 72rem) 72rem, 100vw" alt="hologram shader, another view" width="1600" height="900" loading="lazy" decoding="async" /></figure>
+          <figure class="fx-reveal"><img src="/work/hologram/3-1600.webp" srcset="/work/hologram/3-1600.webp 1600w, /work/hologram/3-3840.webp 3840w" sizes="(min-width: 72rem) 72rem, 100vw" alt="hologram shader, another view" width="1600" height="900" loading="lazy" decoding="async" /></figure>
+          <figure class="fx-reveal"><img src="/work/hologram/1-1600.webp" srcset="/work/hologram/1-1600.webp 1600w, /work/hologram/1-3840.webp 3840w" sizes="(min-width: 72rem) 72rem, 100vw" alt="a blue wireframe hologram of a spacecraft hovering above a hexagonal grid" width="1600" height="900" loading="lazy" decoding="async" /></figure>
+        </div>
+
+        <div class="wk-rows">
+          
+          <section class="wk-row">
+            <h2>how it was made</h2>
+            <p>scan lines, interference and a luminous grid give the spacecraft its projected, unstable feel. i left the shader controls open, so you can pull each effect apart and see exactly what it does to the material.</p>
+          </section>
+          <section class="wk-row">
+            <h2>what’s in it</h2>
+            <ul class="wk-list">
+              <li>procedural hologram material</li>
+              <li>animated scanline interference</li>
+              <li>interactive shader controls</li>
+            </ul>
+          </section>
+          <section class="wk-row">
+            <h2>tools</h2>
+            <ul class="wk-tools">
+              <li>three.js</li><li>glsl</li><li>leva</li>
+            </ul>
+          </section>
+        </div>
+
+        <nav class="wk-nav" aria-label="Other projects">
+          <a href="/work/brickblaster/"><small>&#8592; previous</small><strong>brickblaster<em>interactive 3d game</em></strong></a>
+          <a href="/work/paper-boat/"><small>next &#8594;</small><strong>the paper boat<em>cinematic webgl scene</em></strong></a>
+        </nav>
+      </main>
+
+      <footer class="pg-foot">
+        <p>vipin pathak · curllmooha</p>
+        <ul class="pg-foot__links">
+          <li><a class="fx-link" href="/">the meadow<i aria-hidden="true">&#8594;</i></a></li>
+          <li><a class="fx-link" href="/hire/">work with me<i aria-hidden="true">&#8594;</i></a></li>
+          <li><a class="fx-link" href="https://sketchbook.curllmooha.com/" rel="noopener">sketchbook<i aria-hidden="true">&#8599;</i></a></li>
+        </ul>
+      </footer>
+    </div>
+  </body>
+</html>

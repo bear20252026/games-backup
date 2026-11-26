@@ -1,0 +1,40 @@
+# The meadow is one page and all of it is meant to be found.
+User-agent: *
+Allow: /
+
+# Named so there is no doubt: AI search and assistant crawlers are welcome.
+# ChatGPT (search + training), Claude, Perplexity, Google AI, Apple, Common Crawl.
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://www.curllmooha.com/sitemap.xml

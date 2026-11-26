@@ -1,0 +1,16 @@
+{
+  "name": "curllmooha-editable",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "curllmooha.com 线上 bundle 的可编辑重建工程（反编译整理，非作者原始源码）",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node tools/serve.js 8899"
+  },
+  "devDependencies": {
+    "vite": "^6.0.7"
+  }
+}

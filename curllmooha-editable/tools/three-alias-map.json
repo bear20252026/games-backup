@@ -1,0 +1,1542 @@
+{
+  "generatedFrom": "three-CPLjTyt2.js",
+  "classesFound": 150,
+  "exportsFound": 156,
+  "mapped": 71,
+  "aliasToOfficial": {
+    "C": "Color",
+    "D": "DepthTexture",
+    "J": "BufferGeometry",
+    "K": "BufferAttribute",
+    "M": "Material",
+    "O": "OrthographicCamera",
+    "P": "PerspectiveCamera",
+    "Q": "Matrix4",
+    "W": "WebGLRenderer",
+    "Y": "DataTexture",
+    "a$": "SplineCurve",
+    "a0": "Sphere",
+    "a9": "Quaternion",
+    "aA": "LineSegments",
+    "aB": "Line",
+    "aC": "LineLoop",
+    "aD": "Points",
+    "aE": "Group",
+    "aH": "Bone",
+    "aK": "InterleavedBufferAttribute",
+    "aN": "Box3",
+    "aO": "ExtrudeGeometry",
+    "aP": "ShapePath",
+    "aQ": "Shape",
+    "aR": "PlaneGeometry",
+    "aS": "MeshDepthMaterial",
+    "aW": "Euler",
+    "aa": "SkeletonHelper",
+    "ae": "MeshPhysicalMaterial",
+    "af": "SpotLight",
+    "ag": "PointLight",
+    "ah": "DirectionalLight",
+    "ai": "InstancedMesh",
+    "aj": "InstancedBufferAttribute",
+    "ak": "Object3D",
+    "am": "ImageBitmapLoader",
+    "an": "InterleavedBuffer",
+    "au": "PointsMaterial",
+    "av": "LineBasicMaterial",
+    "aw": "MeshStandardMaterial",
+    "ax": "MeshBasicMaterial",
+    "az": "SkinnedMesh",
+    "b": "Scene",
+    "b0": "TorusGeometry",
+    "b1": "CatmullRomCurve3",
+    "b2": "TubeGeometry",
+    "b4": "SphereGeometry",
+    "b5": "CylinderGeometry",
+    "b6": "LatheGeometry",
+    "b7": "CircleGeometry",
+    "b9": "BoxGeometry",
+    "ba": "ShapeGeometry",
+    "bb": "IcosahedronGeometry",
+    "bc": "Path",
+    "be": "SpriteMaterial",
+    "bf": "CanvasTexture",
+    "bk": "QuadraticBezierCurve3",
+    "bm": "ConeGeometry",
+    "bp": "InstancedBufferGeometry",
+    "bs": "FogExp2",
+    "bt": "VideoTexture",
+    "bu": "Matrix3",
+    "bw": "RingGeometry",
+    "g": "Vector3",
+    "h": "Vector2",
+    "k": "WebGLRenderTarget",
+    "o": "Texture",
+    "r": "ShaderMaterial",
+    "w": "MeshNormalMaterial",
+    "x": "Mesh",
+    "y": "Vector4"
+  },
+  "unmapped": [
+    {
+      "alias": "$",
+      "internal": "zn"
+    },
+    {
+      "alias": "A",
+      "internal": "Fu"
+    },
+    {
+      "alias": "B",
+      "internal": "Sf"
+    },
+    {
+      "alias": "E",
+      "internal": "Sn"
+    },
+    {
+      "alias": "F",
+      "internal": "Xe"
+    },
+    {
+      "alias": "G",
+      "internal": "Oe"
+    },
+    {
+      "alias": "H",
+      "internal": "gn"
+    },
+    {
+      "alias": "I",
+      "internal": "On"
+    },
+    {
+      "alias": "L",
+      "internal": "ho"
+    },
+    {
+      "alias": "N",
+      "internal": "Nn"
+    },
+    {
+      "alias": "R",
+      "internal": "Fe"
+    },
+    {
+      "alias": "S",
+      "internal": "Ge"
+    },
+    {
+      "alias": "T",
+      "internal": "By"
+    },
+    {
+      "alias": "U",
+      "internal": "yn"
+    },
+    {
+      "alias": "V",
+      "internal": "mn"
+    },
+    {
+      "alias": "X",
+      "internal": "ps"
+    },
+    {
+      "alias": "Z",
+      "internal": "qs"
+    },
+    {
+      "alias": "_",
+      "internal": "so"
+    },
+    {
+      "alias": "a",
+      "internal": "Rg"
+    },
+    {
+      "alias": "a1",
+      "internal": "Hd"
+    },
+    {
+      "alias": "a2",
+      "internal": "Cf"
+    },
+    {
+      "alias": "a3",
+      "internal": "If"
+    },
+    {
+      "alias": "a4",
+      "internal": "Rf"
+    },
+    {
+      "alias": "a5",
+      "internal": "Sg"
+    },
+    {
+      "alias": "a6",
+      "internal": "rr"
+    },
+    {
+      "alias": "a7",
+      "internal": "_r"
+    },
+    {
+      "alias": "a8",
+      "internal": "ar"
+    },
+    {
+      "alias": "aF",
+      "internal": "vp"
+    },
+    {
+      "alias": "aG",
+      "internal": "go"
+    },
+    {
+      "alias": "aI",
+      "internal": "Zs"
+    },
+    {
+      "alias": "aJ",
+      "internal": "$a"
+    },
+    {
+      "alias": "aL",
+      "internal": "sr"
+    },
+    {
+      "alias": "aM",
+      "internal": "gr"
+    },
+    {
+      "alias": "aT",
+      "internal": "El"
+    },
+    {
+      "alias": "aU",
+      "internal": "Ig"
+    },
+    {
+      "alias": "aV",
+      "internal": "Yf"
+    },
+    {
+      "alias": "aX",
+      "internal": "Al"
+    },
+    {
+      "alias": "aY",
+      "internal": "zy"
+    },
+    {
+      "alias": "aZ",
+      "internal": "Vu"
+    },
+    {
+      "alias": "a_",
+      "internal": "Hu"
+    },
+    {
+      "alias": "ab",
+      "internal": "Ye"
+    },
+    {
+      "alias": "ac",
+      "internal": "Ul"
+    },
+    {
+      "alias": "ad",
+      "internal": "kn"
+    },
+    {
+      "alias": "al",
+      "internal": "Km"
+    },
+    {
+      "alias": "ao",
+      "internal": "_n"
+    },
+    {
+      "alias": "ap",
+      "internal": "is"
+    },
+    {
+      "alias": "aq",
+      "internal": "Ns"
+    },
+    {
+      "alias": "ar",
+      "internal": "kl"
+    },
+    {
+      "alias": "as",
+      "internal": "Ys"
+    },
+    {
+      "alias": "at",
+      "internal": "sn"
+    },
+    {
+      "alias": "ay",
+      "internal": "Kt"
+    },
+    {
+      "alias": "b3",
+      "internal": "bt"
+    },
+    {
+      "alias": "b8",
+      "internal": "ky"
+    },
+    {
+      "alias": "bA",
+      "internal": "fu"
+    },
+    {
+      "alias": "bB",
+      "internal": "Hy"
+    },
+    {
+      "alias": "bd",
+      "internal": "Vy"
+    },
+    {
+      "alias": "bg",
+      "internal": "Ws"
+    },
+    {
+      "alias": "bh",
+      "internal": "Ol"
+    },
+    {
+      "alias": "bi",
+      "internal": "Xs"
+    },
+    {
+      "alias": "bj",
+      "internal": "Xu"
+    },
+    {
+      "alias": "bl",
+      "internal": "dr"
+    },
+    {
+      "alias": "bn",
+      "internal": "Ai"
+    },
+    {
+      "alias": "bo",
+      "internal": "jl"
+    },
+    {
+      "alias": "bq",
+      "internal": "Wt"
+    },
+    {
+      "alias": "br",
+      "internal": "Ks"
+    },
+    {
+      "alias": "bv",
+      "internal": "or"
+    },
+    {
+      "alias": "bx",
+      "internal": "vu"
+    },
+    {
+      "alias": "by",
+      "internal": "Eu"
+    },
+    {
+      "alias": "bz",
+      "internal": "Jn"
+    },
+    {
+      "alias": "c",
+      "internal": "du"
+    },
+    {
+      "alias": "d",
+      "internal": "zl"
+    },
+    {
+      "alias": "e",
+      "internal": "Zt"
+    },
+    {
+      "alias": "f",
+      "internal": "Di"
+    },
+    {
+      "alias": "i",
+      "internal": "tf"
+    },
+    {
+      "alias": "j",
+      "internal": "Sc"
+    },
+    {
+      "alias": "l",
+      "internal": "Pn"
+    },
+    {
+      "alias": "m",
+      "internal": "Wu"
+    },
+    {
+      "alias": "n",
+      "internal": "_c"
+    },
+    {
+      "alias": "p",
+      "internal": "Te"
+    },
+    {
+      "alias": "q",
+      "internal": "ve"
+    },
+    {
+      "alias": "s",
+      "internal": "Un"
+    },
+    {
+      "alias": "t",
+      "internal": "Oy"
+    },
+    {
+      "alias": "u",
+      "internal": "Li"
+    },
+    {
+      "alias": "v",
+      "internal": "Pi"
+    },
+    {
+      "alias": "z",
+      "internal": "xa"
+    }
+  ],
+  "classes": [
+    {
+      "internal": "$",
+      "official": "Vector2",
+      "markers": [
+        "Vector2"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "zt",
+      "official": "Matrix3",
+      "markers": [
+        "Matrix3"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "$n",
+      "official": "Source",
+      "markers": [
+        "Source"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "pe",
+      "official": "Texture",
+      "markers": [
+        "Texture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Qt",
+      "official": "Vector4",
+      "markers": [
+        "Vector4"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "lo",
+      "official": "RenderTarget",
+      "markers": [
+        "RenderTarget"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Mn",
+      "official": "WebGLRenderTarget",
+      "markers": [
+        "WebGLRenderTarget"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "hr",
+      "official": "DataArrayTexture",
+      "markers": [
+        "DataArrayTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "wp",
+      "official": "WebGLArrayRenderTarget",
+      "markers": [
+        "WebGLArrayRenderTarget"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "co",
+      "official": "Data3DTexture",
+      "markers": [
+        "Data3DTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Cp",
+      "official": "WebGL3DRenderTarget",
+      "markers": [
+        "WebGL3DRenderTarget"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "qe",
+      "official": "Quaternion",
+      "markers": [
+        "Quaternion"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "w",
+      "official": "Vector3",
+      "markers": [
+        "Vector3"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Be",
+      "official": "Box3",
+      "markers": [
+        "Box3"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Ie",
+      "official": "Sphere",
+      "markers": [
+        "Sphere"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Dt",
+      "official": "Matrix4",
+      "markers": [
+        "Matrix4"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Qe",
+      "official": "Euler",
+      "markers": [
+        "Euler"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "jt",
+      "official": "Object3D",
+      "markers": [
+        "Object3D"
+      ],
+      "typeString": "Object3D"
+    },
+    {
+      "internal": "mt",
+      "official": "Color",
+      "markers": [
+        "Color"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Pe",
+      "official": "Material",
+      "markers": [
+        "Material"
+      ],
+      "typeString": "Material"
+    },
+    {
+      "internal": "ti",
+      "official": "MeshBasicMaterial",
+      "markers": [
+        "MeshBasicMaterial"
+      ],
+      "typeString": "MeshBasicMaterial"
+    },
+    {
+      "internal": "oe",
+      "official": "BufferAttribute",
+      "markers": [
+        "BufferAttribute"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Xp",
+      "official": "Float16BufferAttribute",
+      "markers": [
+        "Float16BufferAttribute"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "kt",
+      "official": "BufferGeometry",
+      "markers": [
+        "BufferGeometry"
+      ],
+      "typeString": "BufferGeometry"
+    },
+    {
+      "internal": "xe",
+      "official": "Mesh",
+      "markers": [
+        "Mesh"
+      ],
+      "typeString": "Mesh"
+    },
+    {
+      "internal": "ei",
+      "official": "BoxGeometry",
+      "markers": [],
+      "typeString": "BoxGeometry"
+    },
+    {
+      "internal": "dn",
+      "official": "ShaderMaterial",
+      "markers": [
+        "ShaderMaterial"
+      ],
+      "typeString": "ShaderMaterial"
+    },
+    {
+      "internal": "uo",
+      "official": "Camera",
+      "markers": [
+        "Camera"
+      ],
+      "typeString": "Camera"
+    },
+    {
+      "internal": "Ee",
+      "official": "PerspectiveCamera",
+      "markers": [
+        "PerspectiveCamera"
+      ],
+      "typeString": "PerspectiveCamera"
+    },
+    {
+      "internal": "ad",
+      "official": "CubeCamera",
+      "markers": [],
+      "typeString": "CubeCamera"
+    },
+    {
+      "internal": "ur",
+      "official": "CubeTexture",
+      "markers": [
+        "CubeTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "od",
+      "official": "WebGLCubeRenderTarget",
+      "markers": [
+        "WebGLCubeRenderTarget"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "rs",
+      "official": "Group",
+      "markers": [
+        "Group"
+      ],
+      "typeString": "Group"
+    },
+    {
+      "internal": "fo",
+      "official": "FogExp2",
+      "markers": [
+        "FogExp2"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "po",
+      "official": "Fog",
+      "markers": [
+        "Fog"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "ld",
+      "official": "Scene",
+      "markers": [
+        "Scene"
+      ],
+      "typeString": "Scene"
+    },
+    {
+      "internal": "mo",
+      "official": "InterleavedBuffer",
+      "markers": [
+        "InterleavedBuffer"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Ui",
+      "official": "InterleavedBufferAttribute",
+      "markers": [
+        "InterleavedBufferAttribute"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "ec",
+      "official": "SpriteMaterial",
+      "markers": [
+        "SpriteMaterial"
+      ],
+      "typeString": "SpriteMaterial"
+    },
+    {
+      "internal": "hd",
+      "official": "Sprite",
+      "markers": [
+        "Sprite"
+      ],
+      "typeString": "Sprite"
+    },
+    {
+      "internal": "ud",
+      "official": "LOD",
+      "markers": [
+        "LOD"
+      ],
+      "typeString": "LOD"
+    },
+    {
+      "internal": "dd",
+      "official": "SkinnedMesh",
+      "markers": [
+        "SkinnedMesh"
+      ],
+      "typeString": "SkinnedMesh"
+    },
+    {
+      "internal": "nc",
+      "official": "Bone",
+      "markers": [
+        "Bone"
+      ],
+      "typeString": "Bone"
+    },
+    {
+      "internal": "xn",
+      "official": "DataTexture",
+      "markers": [
+        "DataTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "ds",
+      "official": "InstancedBufferAttribute",
+      "markers": [
+        "InstancedBufferAttribute"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "fd",
+      "official": "InstancedMesh",
+      "markers": [
+        "InstancedMesh"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Zn",
+      "official": "Plane",
+      "markers": [
+        "Plane"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "pd",
+      "official": "BatchedMesh",
+      "markers": [
+        "BatchedMesh"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "ze",
+      "official": "LineBasicMaterial",
+      "markers": [
+        "LineBasicMaterial"
+      ],
+      "typeString": "LineBasicMaterial"
+    },
+    {
+      "internal": "Qn",
+      "official": "Line",
+      "markers": [
+        "Line"
+      ],
+      "typeString": "Line"
+    },
+    {
+      "internal": "bn",
+      "official": "LineSegments",
+      "markers": [
+        "LineSegments"
+      ],
+      "typeString": "LineSegments"
+    },
+    {
+      "internal": "md",
+      "official": "LineLoop",
+      "markers": [
+        "LineLoop"
+      ],
+      "typeString": "LineLoop"
+    },
+    {
+      "internal": "ic",
+      "official": "PointsMaterial",
+      "markers": [
+        "PointsMaterial"
+      ],
+      "typeString": "PointsMaterial"
+    },
+    {
+      "internal": "gd",
+      "official": "Points",
+      "markers": [
+        "Points"
+      ],
+      "typeString": "Points"
+    },
+    {
+      "internal": "_d",
+      "official": "VideoTexture",
+      "markers": [
+        "VideoTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "cm",
+      "official": "VideoFrameTexture",
+      "markers": [
+        "VideoFrameTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "hm",
+      "official": "FramebufferTexture",
+      "markers": [
+        "FramebufferTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "_o",
+      "official": "CompressedTexture",
+      "markers": [
+        "CompressedTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "um",
+      "official": "CompressedArrayTexture",
+      "markers": [
+        "CompressedArrayTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "dm",
+      "official": "CompressedCubeTexture",
+      "markers": [
+        "CompressedCubeTexture",
+        "CubeTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "fm",
+      "official": "CanvasTexture",
+      "markers": [
+        "CanvasTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "sc",
+      "official": "DepthTexture",
+      "markers": [
+        "DepthTexture"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "fn",
+      "official": "Curve",
+      "markers": [],
+      "typeString": "Curve"
+    },
+    {
+      "internal": "xo",
+      "official": "EllipseCurve",
+      "markers": [
+        "EllipseCurve"
+      ],
+      "typeString": "EllipseCurve"
+    },
+    {
+      "internal": "xd",
+      "official": "ArcCurve",
+      "markers": [
+        "ArcCurve"
+      ],
+      "typeString": "ArcCurve"
+    },
+    {
+      "internal": "vd",
+      "official": "CatmullRomCurve3",
+      "markers": [
+        "CatmullRomCurve3"
+      ],
+      "typeString": "CatmullRomCurve3"
+    },
+    {
+      "internal": "ac",
+      "official": "CubicBezierCurve",
+      "markers": [
+        "CubicBezierCurve"
+      ],
+      "typeString": "CubicBezierCurve"
+    },
+    {
+      "internal": "yd",
+      "official": "CubicBezierCurve3",
+      "markers": [
+        "CubicBezierCurve3"
+      ],
+      "typeString": "CubicBezierCurve3"
+    },
+    {
+      "internal": "oc",
+      "official": "LineCurve",
+      "markers": [
+        "LineCurve"
+      ],
+      "typeString": "LineCurve"
+    },
+    {
+      "internal": "Md",
+      "official": "LineCurve3",
+      "markers": [
+        "LineCurve3"
+      ],
+      "typeString": "LineCurve3"
+    },
+    {
+      "internal": "lc",
+      "official": "QuadraticBezierCurve",
+      "markers": [
+        "QuadraticBezierCurve"
+      ],
+      "typeString": "QuadraticBezierCurve"
+    },
+    {
+      "internal": "cc",
+      "official": "QuadraticBezierCurve3",
+      "markers": [
+        "QuadraticBezierCurve3"
+      ],
+      "typeString": "QuadraticBezierCurve3"
+    },
+    {
+      "internal": "hc",
+      "official": "SplineCurve",
+      "markers": [
+        "SplineCurve"
+      ],
+      "typeString": "SplineCurve"
+    },
+    {
+      "internal": "Sd",
+      "official": "CurvePath",
+      "markers": [],
+      "typeString": "CurvePath"
+    },
+    {
+      "internal": "tr",
+      "official": "Path",
+      "markers": [],
+      "typeString": "Path"
+    },
+    {
+      "internal": "fr",
+      "official": "LatheGeometry",
+      "markers": [],
+      "typeString": "LatheGeometry"
+    },
+    {
+      "internal": "vo",
+      "official": "CapsuleGeometry",
+      "markers": [],
+      "typeString": "CapsuleGeometry"
+    },
+    {
+      "internal": "yo",
+      "official": "CircleGeometry",
+      "markers": [],
+      "typeString": "CircleGeometry"
+    },
+    {
+      "internal": "gs",
+      "official": "CylinderGeometry",
+      "markers": [],
+      "typeString": "CylinderGeometry"
+    },
+    {
+      "internal": "Mo",
+      "official": "ConeGeometry",
+      "markers": [],
+      "typeString": "ConeGeometry"
+    },
+    {
+      "internal": "ni",
+      "official": "PolyhedronGeometry",
+      "markers": [],
+      "typeString": "PolyhedronGeometry"
+    },
+    {
+      "internal": "So",
+      "official": "DodecahedronGeometry",
+      "markers": [],
+      "typeString": "DodecahedronGeometry"
+    },
+    {
+      "internal": "bd",
+      "official": "EdgesGeometry",
+      "markers": [],
+      "typeString": "EdgesGeometry"
+    },
+    {
+      "internal": "Ri",
+      "official": "Shape",
+      "markers": [],
+      "typeString": "Shape"
+    },
+    {
+      "internal": "Eo",
+      "official": "ExtrudeGeometry",
+      "markers": [],
+      "typeString": "ExtrudeGeometry"
+    },
+    {
+      "internal": "To",
+      "official": "IcosahedronGeometry",
+      "markers": [],
+      "typeString": "IcosahedronGeometry"
+    },
+    {
+      "internal": "pr",
+      "official": "OctahedronGeometry",
+      "markers": [],
+      "typeString": "OctahedronGeometry"
+    },
+    {
+      "internal": "_s",
+      "official": "PlaneGeometry",
+      "markers": [],
+      "typeString": "PlaneGeometry"
+    },
+    {
+      "internal": "Ao",
+      "official": "RingGeometry",
+      "markers": [],
+      "typeString": "RingGeometry"
+    },
+    {
+      "internal": "wo",
+      "official": "ShapeGeometry",
+      "markers": [],
+      "typeString": "ShapeGeometry"
+    },
+    {
+      "internal": "mr",
+      "official": "SphereGeometry",
+      "markers": [],
+      "typeString": "SphereGeometry"
+    },
+    {
+      "internal": "Co",
+      "official": "TetrahedronGeometry",
+      "markers": [],
+      "typeString": "TetrahedronGeometry"
+    },
+    {
+      "internal": "Ro",
+      "official": "TorusGeometry",
+      "markers": [],
+      "typeString": "TorusGeometry"
+    },
+    {
+      "internal": "Io",
+      "official": "TorusKnotGeometry",
+      "markers": [],
+      "typeString": "TorusKnotGeometry"
+    },
+    {
+      "internal": "Po",
+      "official": "TubeGeometry",
+      "markers": [],
+      "typeString": "TubeGeometry"
+    },
+    {
+      "internal": "wd",
+      "official": "WireframeGeometry",
+      "markers": [],
+      "typeString": "WireframeGeometry"
+    },
+    {
+      "internal": "Cd",
+      "official": "ShadowMaterial",
+      "markers": [
+        "ShadowMaterial"
+      ],
+      "typeString": "ShadowMaterial"
+    },
+    {
+      "internal": "Rd",
+      "official": "RawShaderMaterial",
+      "markers": [
+        "RawShaderMaterial"
+      ],
+      "typeString": "RawShaderMaterial"
+    },
+    {
+      "internal": "uc",
+      "official": "MeshStandardMaterial",
+      "markers": [
+        "MeshStandardMaterial"
+      ],
+      "typeString": "MeshStandardMaterial"
+    },
+    {
+      "internal": "Id",
+      "official": "MeshPhysicalMaterial",
+      "markers": [
+        "MeshPhysicalMaterial"
+      ],
+      "typeString": "MeshPhysicalMaterial"
+    },
+    {
+      "internal": "Pd",
+      "official": "MeshPhongMaterial",
+      "markers": [
+        "MeshPhongMaterial"
+      ],
+      "typeString": "MeshPhongMaterial"
+    },
+    {
+      "internal": "Ld",
+      "official": "MeshToonMaterial",
+      "markers": [
+        "MeshToonMaterial"
+      ],
+      "typeString": "MeshToonMaterial"
+    },
+    {
+      "internal": "Dd",
+      "official": "MeshNormalMaterial",
+      "markers": [
+        "MeshNormalMaterial"
+      ],
+      "typeString": "MeshNormalMaterial"
+    },
+    {
+      "internal": "Ud",
+      "official": "MeshLambertMaterial",
+      "markers": [
+        "MeshLambertMaterial"
+      ],
+      "typeString": "MeshLambertMaterial"
+    },
+    {
+      "internal": "dc",
+      "official": "MeshDepthMaterial",
+      "markers": [
+        "MeshDepthMaterial"
+      ],
+      "typeString": "MeshDepthMaterial"
+    },
+    {
+      "internal": "fc",
+      "official": "MeshDistanceMaterial",
+      "markers": [
+        "MeshDistanceMaterial"
+      ],
+      "typeString": "MeshDistanceMaterial"
+    },
+    {
+      "internal": "Nd",
+      "official": "MeshMatcapMaterial",
+      "markers": [
+        "MeshMatcapMaterial"
+      ],
+      "typeString": "MeshMatcapMaterial"
+    },
+    {
+      "internal": "Fd",
+      "official": "LineDashedMaterial",
+      "markers": [
+        "LineDashedMaterial"
+      ],
+      "typeString": "LineDashedMaterial"
+    },
+    {
+      "internal": "ii",
+      "official": "Light",
+      "markers": [
+        "Light"
+      ],
+      "typeString": "Light"
+    },
+    {
+      "internal": "Gd",
+      "official": "HemisphereLight",
+      "markers": [
+        "HemisphereLight"
+      ],
+      "typeString": "HemisphereLight"
+    },
+    {
+      "internal": "Qm",
+      "official": "SpotLightShadow",
+      "markers": [
+        "SpotLightShadow"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Wd",
+      "official": "SpotLight",
+      "markers": [
+        "SpotLight"
+      ],
+      "typeString": "SpotLight"
+    },
+    {
+      "internal": "jm",
+      "official": "PointLightShadow",
+      "markers": [
+        "PointLightShadow"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Xd",
+      "official": "PointLight",
+      "markers": [
+        "PointLight"
+      ],
+      "typeString": "PointLight"
+    },
+    {
+      "internal": "xr",
+      "official": "OrthographicCamera",
+      "markers": [
+        "OrthographicCamera"
+      ],
+      "typeString": "OrthographicCamera"
+    },
+    {
+      "internal": "tg",
+      "official": "DirectionalLightShadow",
+      "markers": [
+        "DirectionalLightShadow"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "qd",
+      "official": "DirectionalLight",
+      "markers": [
+        "DirectionalLight"
+      ],
+      "typeString": "DirectionalLight"
+    },
+    {
+      "internal": "Yd",
+      "official": "AmbientLight",
+      "markers": [
+        "AmbientLight"
+      ],
+      "typeString": "AmbientLight"
+    },
+    {
+      "internal": "Zd",
+      "official": "RectAreaLight",
+      "markers": [
+        "RectAreaLight"
+      ],
+      "typeString": "RectAreaLight"
+    },
+    {
+      "internal": "Jd",
+      "official": "SphericalHarmonics3",
+      "markers": [
+        "SphericalHarmonics3"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "$d",
+      "official": "LightProbe",
+      "markers": [
+        "LightProbe"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Kd",
+      "official": "InstancedBufferGeometry",
+      "markers": [
+        "InstancedBufferGeometry"
+      ],
+      "typeString": "InstancedBufferGeometry"
+    },
+    {
+      "internal": "ig",
+      "official": "ImageBitmapLoader",
+      "markers": [
+        "ImageBitmapLoader"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "rg",
+      "official": "StereoCamera",
+      "markers": [],
+      "typeString": "StereoCamera"
+    },
+    {
+      "internal": "jd",
+      "official": "ArrayCamera",
+      "markers": [
+        "ArrayCamera"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "og",
+      "official": "AudioListener",
+      "markers": [],
+      "typeString": "AudioListener"
+    },
+    {
+      "internal": "ef",
+      "official": "Playing",
+      "markers": [
+        "Playing"
+      ],
+      "typeString": "Audio"
+    },
+    {
+      "internal": "yg",
+      "official": "AnimationObjectGroup",
+      "markers": [
+        "AnimationObjectGroup"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "bg",
+      "official": "RenderTarget3D",
+      "markers": [
+        "RenderTarget3D"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Eg",
+      "official": "RenderTargetArray",
+      "markers": [
+        "RenderTargetArray"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Ag",
+      "official": "UniformsGroup",
+      "markers": [
+        "UniformsGroup"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "wg",
+      "official": "InstancedInterleavedBuffer",
+      "markers": [
+        "InstancedInterleavedBuffer"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Cg",
+      "official": "GLBufferAttribute",
+      "markers": [
+        "GLBufferAttribute"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "bc",
+      "official": "Matrix2",
+      "markers": [
+        "Matrix2"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Lg",
+      "official": "Box2",
+      "markers": [
+        "Box2"
+      ],
+      "typeString": null
+    },
+    {
+      "internal": "Ug",
+      "official": "SpotLightHelper",
+      "markers": [],
+      "typeString": "SpotLightHelper"
+    },
+    {
+      "internal": "Ng",
+      "official": "SkeletonHelper",
+      "markers": [
+        "SkeletonHelper"
+      ],
+      "typeString": "SkeletonHelper"
+    },
+    {
+      "internal": "Fg",
+      "official": "PointLightHelper",
+      "markers": [],
+      "typeString": "PointLightHelper"
+    },
+    {
+      "internal": "Bg",
+      "official": "HemisphereLightHelper",
+      "markers": [],
+      "typeString": "HemisphereLightHelper"
+    },
+    {
+      "internal": "zg",
+      "official": "GridHelper",
+      "markers": [],
+      "typeString": "GridHelper"
+    },
+    {
+      "internal": "kg",
+      "official": "PolarGridHelper",
+      "markers": [],
+      "typeString": "PolarGridHelper"
+    },
+    {
+      "internal": "Vg",
+      "official": "DirectionalLightHelper",
+      "markers": [],
+      "typeString": "DirectionalLightHelper"
+    },
+    {
+      "internal": "Hg",
+      "official": "CameraHelper",
+      "markers": [],
+      "typeString": "CameraHelper"
+    },
+    {
+      "internal": "Gg",
+      "official": "BoxHelper",
+      "markers": [],
+      "typeString": "BoxHelper"
+    },
+    {
+      "internal": "Wg",
+      "official": "Box3Helper",
+      "markers": [],
+      "typeString": "Box3Helper"
+    },
+    {
+      "internal": "Xg",
+      "official": "PlaneHelper",
+      "markers": [],
+      "typeString": "PlaneHelper"
+    },
+    {
+      "internal": "qg",
+      "official": "ArrowHelper",
+      "markers": [],
+      "typeString": "ArrowHelper"
+    },
+    {
+      "internal": "Yg",
+      "official": "AxesHelper",
+      "markers": [],
+      "typeString": "AxesHelper"
+    },
+    {
+      "internal": "Zg",
+      "official": "ShapePath",
+      "markers": [],
+      "typeString": "ShapePath"
+    },
+    {
+      "internal": "Ny",
+      "official": "WebGLRenderer",
+      "markers": [
+        "WebGLRenderer"
+      ],
+      "typeString": null
+    }
+  ]
+}

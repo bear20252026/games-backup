@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated at build time by workPages() in vite.config.js from projects.js.
+     The meadow is one page; each project also has a plain page of its own. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.curllmooha.com/</loc><lastmod>2026-11-14</lastmod></url>
+  <url><loc>https://www.curllmooha.com/hire/</loc><lastmod>2026-11-14</lastmod></url>
+  <url><loc>https://www.curllmooha.com/work/polify/</loc><lastmod>2026-11-14</lastmod></url>
+  <url><loc>https://www.curllmooha.com/work/aera/</loc><lastmod>2026-11-14</lastmod></url>
+  <url><loc>https://www.curllmooha.com/work/brickblaster/</loc><lastmod>2026-11-14</lastmod></url>
+  <url><loc>https://www.curllmooha.com/work/hologram/</loc><lastmod>2026-11-14</lastmod></url>
+  <url><loc>https://www.curllmooha.com/work/paper-boat/</loc><lastmod>2026-11-14</lastmod></url>
+  <url><loc>https://www.curllmooha.com/work/golden-hour/</loc><lastmod>2026-11-14</lastmod></url>
+  <url><loc>https://www.curllmooha.com/work/cosmic-bloom/</loc><lastmod>2026-11-14</lastmod></url>
+</urlset>

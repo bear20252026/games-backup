@@ -1,0 +1,2832 @@
+﻿<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-MXF56VVBER');
+  </script>
+
+  <meta charset="UTF-8" />
+  <!-- viewport-fit=cover is required for the env(safe-area-inset-*) values the
+         HUD and mobile menu already use; without it they resolve to 0 on notched
+         iPhones and the controls sit under the status bar. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <!-- Nunito is self-hosted now; the @font-face rules live at the top of
+         src/styles/global.css and Vite fingerprints the woff2 files. What used to be
+         here was a render-blocking stylesheet on fonts.googleapis.com plus a
+         second origin for the font itself — two DNS lookups and two TLS
+         handshakes on the critical path, which is why the preconnects were
+         needed at all. Serving both from our own origin removes the request, 
+         the preconnects, and the last third party the page talks to. -->
+
+  <!-- Name first, then the two phrases people search for: "three.js
+         developer" and "3d portfolio". The description says them in plain
+         words too, with the handle and the client, because search engines
+         match what a page says and the meadow itself is a canvas they cannot
+         read. Title kept to 60 characters so it is not cut in results. -->
+  <title>Vipin Pathak – Three.js Developer | Interactive 3D Portfolio</title>
+  <meta name="description"
+    content="Vipin Pathak (curllmooha) is a freelance Three.js and WebGL creative developer from India. Walk his interactive 3D portfolio, including the Polify studio site." />
+  <meta name="author" content="Vipin Pathak" />
+  <!-- Match the live afternoon sky visible from the first frame. -->
+  <meta name="theme-color" content="#7eb4e0" />
+  <meta name="color-scheme" content="light" />
+
+  <!-- Which sky to paint first (see --sky-photo). Mirrors defaultQuality() and
+         storedQuality() in src/config/quality.js and the device guesses in
+         src/config/deviceProfile.js; change them together. -->
+  <script>
+    (function () {
+      try {
+        var tiers = { high: 1, medium: 1, low: 1 }
+        var stored = null
+        var observed = null
+        try {
+          stored = window.localStorage.getItem('meadow-quality')
+          observed = window.localStorage.getItem('meadow-observed')
+        } catch (error) { /* private browsing: the guess stands */ }
+        var tier = tiers[stored] ? stored : null
+        if (!tier) {
+          var threads = typeof navigator.hardwareConcurrency === 'number' ? navigator.hardwareConcurrency : 4
+          var memory = typeof navigator.deviceMemory === 'number' ? navigator.deviceMemory : null
+          var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches
+          var low = threads <= 4 || (memory !== null && memory <= 4)
+          var high = !coarse && threads >= 8 && (memory === null || memory >= 8)
+          tier = low ? 'low' : high ? 'high' : 'medium'
+          if (observed === 'capable') tier = tier === 'low' ? 'medium' : 'high'
+          else if (observed === 'strained') tier = tier === 'high' ? 'medium' : 'low'
+        }
+        if (tier === 'low') document.documentElement.setAttribute('data-sky-raw', '')
+      } catch (error) { /* the graded sky is the default */ }
+    })()
+  </script>
+
+  <!-- With scripting off, nothing ever hides the static portfolio that
+         vite.config.js renders beside #root, so it only needs to be made
+         visible. A <style> inside <noscript> in <head> is the standard way to
+         do that; global.css keeps .boot-fallback hidden the rest of the time.
+         The rule is duplicated there rather than shared because this file must
+         not wait on a stylesheet to decide whether the page has any content. -->
+  <!-- The one rule that cannot wait for a stylesheet.
+
+         The document ships with the entire flat portfolio next to #root (see
+         vite.config.js), and global.css is what keeps that clipped while the
+         meadow has the screen. But global.css reaches the page as a
+         JavaScript import,
+         so in development there is no stylesheet in this document at all —
+         and every refresh painted the fallback unstyled for as long as the
+         module graph took to load: the whole portfolio in Times New Roman with
+         all three mutually exclusive "why you are seeing this" lines stacked
+         up at the bottom. In production the built stylesheet is render
+         blocking and hides it, but only as long as it wins that race.
+
+         So the rule that matters lives here, in the document, where nothing
+         can be slower than it. Deliberately the same `.boot-fallback`
+         selector and the same values as global.css rather than something
+         stronger: the two reveal rules there are more specific than this and
+         must stay able to override it, which an id or an !important here
+         would quietly break. -->
+  <style>
+    .boot-fallback {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* The sky, from the first paint: the opening's own sky, photographed.
+         The loader used to paint a flat gradient here and the real sky, with
+         its clouds, faded in over it seconds later — a visible change behind
+         the flower. These are frames of that 3D sky captured at the moment it
+         is revealed (it holds still while the meadow loads: under one colour
+         level of change over 3.5 s), so the fade-in now changes nothing you
+         can see. One shot per layout, split where the opening's camera
+         switches to its compact framing (OpeningWordmark: aspect < 0.82);
+         ~2 KB and ~1 KB, small enough to sit in the page rather than wait on
+         a request. The gradient stays underneath as the fallback.
+         Re-capture both if the opening's sky, hour or framing changes.
+         global.css paints the same. */
+    :root {
+      --sky-dither: url('/assets/dither-DS2wo-wt.png');
+      --sky-photo: url(data:image/webp;base64,UklGRt4HAABXRUJQVlA4INIHAABwWgCdASqAAmgBPpVKn00lpCaiIZDIwNASiWlu30v9cn9EpmR/acwmugt8/QX/SWy6+n/y/Tv2AEmGW8Qv1uM1CP5ajLwOdKBlp8WQlvzl07qRcEwd+cuoU9zg/wXF93kirIwfrRXkfexUajKXBpIudVKhwlI/Zu8yGWnwpR6O++qcXU/jbLe1jIor2UtbfM4veKHaqUcReaXcro6B0otc+ZI1yhqHUbZOVSzIAF6tJPlvRefIBbdbkehI6cujXAr4pRvqCTHHXgIClBShuQT/GGirAMJfuunPcxlFjq9OzSWq/5yHTvbDsS5C7kNdg5+sSsp/9u4SXhb5gc3Z1uNC5QczIpWIWnXeLa7hM+aTNzVE3YXJlddf4QxTInFh6rmpNw/37sNblv1yY3X9nFLhXsRH73lEczdPh+7he0EgSkJep1aYOJ5+xlpL1kMPm7DW0migvVl15xzg6F4o3cAGufLQocidqu0w5ZCztG5FeyW065T0m7ykyx7SaK+hE1d+tmB8pGj6Xg6MxV8YSaQOAFZb287Mute60ruRMIOYl6EKizNjTFk0UdIw83Ee51o5C079co4tX86LeNAh7P05+/IgxZMwc983JiXwNRW+KLp6EdF9Ta93qTtvnDnIsWTLugOq/vVXr4dJGme5Y61PLvmHqK0kP0SDLESAdgy2ngPA3Gah9gVOTHYY4X0jHJHrjQTw2ctyN52g+zNtcnQgKUHgoL531Bf60M/EjvUgHVQCxwk4OuOsv5eu0KDVX4hWnyVPR9yWrhUOZIAyDqHnRIQJ7GOztyvu4NgSwHE/HeuUkSW5rKS7qUZeL76n33+DozJl+PJErCFWcMt4h67741fjJnWit4AZKSzu8ZEQOWeklJQjlnpKTUI5Zwz0WX5ajgQ9dzEkmVg3bNpKtEsOc67lJqJeKJk1ZSvEyaspXiZIfDnOu5TnHsewiWHbtzhzrzUHOvEznHsa8SAA/tuj43vXhCWTM2NDSGVtD/M34I+np0f3t+vvx6xTTe+CnqcTmSzjxM6yJ54DuWF/IFPdgiKfnJ0LUjm917NAxC4HB5ehfMZKEB0DT+IH7+YSobhkpss8LmGfjEAXUy0esjEIYBpGWaPvIvHd454JU4ND4V6hOsh6ktowr7pFGINQOKQAAEhlq8ZTpqW1hAnnDzveWOEaJzUEAXun1fuKD1hefPUe1NB0/x2Ugv14Qq0k6LTwkyHaW1YwLa6fZko8RVQP9pOJ/IUKvkZnpDwNaLEqDq9gHn6wP7VlPoSrriRAxi+1AHQAAZ5h0bkWCDu5/oyFlFNoKg3sbDRYT4us89gR0OEqwx6LuUmifqS2qe5mGtAAAJiiWL0ctCRFTjg/dBBm6FowEnA9h4QGnB1438X3HWn12T8q6sYUYZCAABjaJAPSyDJ44J3vxaVJSZZ8AaHihUlZ4uoMWBIoVGOSIbbmTkgFIiLrBitEylXyhSiyL50LdfA5TnV3ZHSRGOQABy28uBlOaginbc1KWJpnPASTpUSY67+Mw4n7MrSAUWUXVlbi9axfZWWzrHXfNX8qeiu39quBu01bu4wNx7YdoMyDHrZ/GygXhPxM+ny/gbMREoIFn31YK9iFCtEg+ggCJlnTuzAPTT6gi+I4Lrw6X/CEWyjVKcobEOkpn7rrGvE9AE+I84xEGiaNdfmIZOumaLTPsE50rxzSotl7SowNy3oSfKq0CC1RGNtnLOzRjIbQaPaxBbt1Pka1aqbohVji1eCADCSFo4qrCmW4IJaFeFRxrRJmpKXGqyKuyB0qUsHXbfLXI/nIIIU2879dTcvbZt3SdNYHbBbLaTg3dHsLH/OgNTABKPSn1ynRFvfrCLK6vGTOu8IddLYmAD5NjTeNSg3xtr0gwpcFK4tC0eJV/lwF6MeHJ3qUlWPBFzegn2EtJXCfh+5SfPunx4BKexfr/3UC1skB2fSZmuXD8/C5v0m60cYUSBwF6OBbni3ibsghHBeJqVEIk6dmI0ePN2uxcAcD6zQ3ifVjpG8YuHotTnUZklBytn86tsxGKiUDRju9Hw11j7vMMoo0dbJaOPiw1gQxzLiMab9sAJ2+ehVqX9YX/QUIDUckiZlRYbmie6Rtxmbma60cTXHwcLN0L0izLxrs1x2LlRgzYb3kIBllFnjIZ7TPKXFTlieii1yJc0QAKUkArKQRDbsbEkvk3CZ5fC4L5FxBaO25k+y+EOwO1AqvxAtcAuTTKK5UKdL2pQAJ4PrlFB7C1ob9XK5KCNGnSFvNsURqpP+mTOb6oBYDCovBHIo4UAAAAAXYlYv1z+jBtl/k6+pxyZaMPR0xCZWUZ/VEWOM3euR5UzI9X4cCgHyAZtIK1raIV+gEhAiDJ61Tg2N6NATPrJcJVRvsrSACl8a6OZdklioD1bVyTKsjTBoIAAAAI8oz2VpRCHR/5djR4kytXwickfbkgQTH/xyEu9rBQroNQb6J6/mBCtosUDwxiPbjNR2AmBQp0QlwRpPYRosUQ4wUk1j2GPvH8SUQqdLMiWZCI50x6SCMOfw0yEZy22354LPa3UxXMtlBGCdZbIJ7bxKVeI2d4AyTzZ+CLiJla0ZQPbP+rV7qOYXeWtAgiXeQUNS6wquvtCDbeVroLFoSDVJwae7x6Icc7MxUTJwfRFmThQyd6NeYhFoWGNlQ9CAA);
+    }
+
+    @media (max-aspect-ratio: 41/50) {
+      :root {
+        --sky-photo: url(data:image/webp;base64,UklGRioFAABXRUJQVlA4IB4FAABwRACdASosAYoCPpVKok0lpCOiIOg4sBKJaW7fbveCfP6Bu71H9qtjPKBYTxbHXjH6AW5diXVsy62ZdbMutmXWzLrZl1sy62ZdbN5G32+kUAtI38KB19KtxyCCKFDm7cvqLJWJvqP8eAGlhr3c0szvKCURMhTYj/K/2JEgvx5ObgZGTr9bfW5Ddb2BG3T7F8Tm2pM1w0Tgvg9eotSC2f6NqOVBeeCtqS/sbc5KZNUslUmAmNDW9JkdmW1IKexSG46+xZpns9ns8UlF7jFeCSE1QWtaal/95dKKyP+L0fYQ/3ArX7DfHG0LiX6Q5tx2v7WgmptlR7Bba3p2LGO4CeiS9J058V6zw//60BiLZ0PQcpQFC1yWLC+iAcN8vivTRRQsP4J7FaqRwvoxfGpZZh5+fiG372V/bZxkq6rB6O8auERNNZ5VQ7KfuMxQUp+MB/WQswldlLg+936I0S+8ZiubJGO6DZLiWeUOzKmJ6LJwzfyhDsuodpNAorZa2AdtWXZbReyNVCLsYuyqh2XXwiCsEa9KodmVOXy78PsRih5qH3fzJdU9d1XR282r8NdC5fV0vbHbGp0BhgbTNtUGNHms3Kf/MOR0s4eJ3CjwRcrUe9/w6Mm3Ns6v9pRkMk32Iiiq1ItOiTDRQ9IDKWe5DKLwmuPb1oI9xIQhEa8dBxZ3J8cCkBh9NvD16RdBJhTLr1gekw2fsNG7D2F601d6a7DVmrPYew3fRrvo3YbsAP5lBByBhdH6Th/F3sR4zFn/iL2L8n/waso6knIFNeZeB+TyqnyIBgiqar6QgsUbd7DucfTyd0LI5Q3OCgW00c8gl+JXd9KZBSSe89iXMxYxS2DjAZ1FF6YQ6NSm15rvYJQKhfP3GAHsBy/GBvy5O8ujLv14nABitq1F8f8Xt4BaXPCKGoKUMABPZmT7B91QAq2dnZco5ACTQV4tv9IEkn+ABDrHkMMXLgC6OzBIIxSzgBQUU//Sm4Jktb4tRl6J7xLXlROWnSBzIc/OZsHjMVsVNbVJyKpaurWgdvYLJKBAAOPNfpKSQc40VZVYtVgxFvCmjD3xMJh7wi2pTL/EgFSYpU8cvgkJqMdwf77ZHBefXdQOvkuk/p25vQIOmulMdbctbL/A2ivhI6TqKuEYrQrdOjopJGbWXHUzP1pI8CVwu1dc/o8fIh5DTHaHhOx8btW2mULOctbXOGnpAWrRnffvgCkEyglDz4S+5/HCh1Zx5uvb3WB6BuKKEJDsjTcU2Sh+sYdp6AIAW6QvGkQmtuSrsgrp3Q33hhBgS082eV4Hn+ZRZLUMNUpzo/67+5XnJh6AxOT48T1fK0ZMHDzWNYBMD7Twe4VBnT1nkZt0/MVNiUqZcu74PjsQDACGkwmUlJQADgW2pAOouqmtlQtGVi9/lHAuJtMAjWooukDcEiLewBHLRVT6kaB6k/A9rOXULRgQrgI7YHGQ2e/dqW6yE0fQBPLGkKfmF5/kz2uDBvCP6PKNaPIqkvOphfMHn8sAGlvhsIvUH7UGvb9+XlGQiPkhgJgZniddAIADPgy7mnF2fpyLzGv2UL8E6ZoP+WNhUoYe2cOY6Qk+klSyLL4Y5GAcZREcQhg58s0++dsNfqjOGjaosd3lRZ6njvWPT8kQYH1ctCaScVItGUlajhteTqu0w+wkNdD0n0NOieLfAftieIw3IazE+EbclssFzQL++EuIsCS4CH6wiRHARFoSs2TCTroa/feUv4a2TdTAKZkAAA==);
+      }
+    }
+
+    /* The low quality tier draws no film grade, and its sky is a touch paler
+         and flatter without it (no saturation lift, no vignette). It used to
+         be a much deeper blue, the low tier's colour bug rather than its
+         sky — re-captured 2026-10-09 once that was fixed (main.jsx, tone
+         mapping). The script below predicts the tier the same way
+         config/quality.js will (a stored choice, else the hardware guess
+         moved one step by the last visit's measurement) and marks the page,
+         so a low-tier phone is shown the sky it is about to get. */
+    :root[data-sky-raw] {
+      --sky-photo: url(data:image/webp;base64,UklGRiIGAABXRUJQVlA4IBYGAACwUgCdASqAAmgBPrVOo1CnIyKioLD5COAWiWlu4WiEOU0Kcu/9p3i8KBYJ9Av8BgBj3M+QAZSxICQEgJASAkBICP0MsE4g/3TCM4D79tEDMXiRkjJGSMeDKttRPIdvexVm2iBmLxIyRkjJGSMj8Ts/U6qmtQUvTakI1EDMXiRkjJGSMeRTgGbd5MJAbEBVmGfQjIy2iBmLxIthctN2yYROQhw5wDs61II520yMtpYWiuy1PCNyDnjxudmzXOUlY5ly2z+IgnTIy2iPcLyAz3Qql5QB5GpYuyLszCdSb5+nwkWro5zRn3JvBuT2oGark/7DB4N/vEq0AQaQoM1UJsLjWzztFXfBNuRMRky4jZErl6EgbnDkz5FFsD/7J6JAcgIPKu0y89DijfksW4VlB5dh0V1vNGW1KwFXaLYYP3mDwmIh1viox94pHY4ROrCDZSua8kM21hGJeTFrQew2NIhCgL9IgJQRqdMDcEYHYuyoGjUihf3fLVI1BCWYTlPah8yNX4Yrp7AQJEk7SQibj+sImbWUw01zQIzBTNSk6/7hk9m1L7IpveYx6SXZCd/Z1L42iBnssDm139vfYY7C6X6pN/ffc1QeiSvVdDIq5+2P8/wRl4gCl1o5ZEtx5LeC3Sb5N8m+TvFyo8IIotNMuEobT/eFh8n5PennTCn8Pv/WJB7NFHnLwNvnwslJhK+2M5glvZ2aCpnCUmuTdIHX1UTA0DJvg7qDzU8kbca1em1WGSMkZIyRkfwd1B4R1aMqQtK41WJ+I6GRGDHhLUTLza41xTZ3AqDME1Z6Sm5GRZhHLvikGsJbFttZxTsdFmEcu+Gg7gEwsOrsq1NJ/Oeu/H2UhDIWiGBF1csVLcjIsvhfj04knOdwKgydcu+KTaKEAP72g5/kd61/B/kf16+HfpWOSJgoAAACz46uqta1KnwKiU9ansaAKHT4ZkoT+mgzkOi8ElyiFXueaYsgV6AAAAs+MaxiWPLRBS8b7/I/xcugSOBfhvNILvdKcjAAAAAAbxMUthfPO7ujlnVaHmeN+69XpOdEzmo59AAAALvQcjYY/rT2Gnhh/3bR82MWu83kWKCv9gAAAB0erOI0iinOk1QmJdmCDfkn0N8ngWCWlnb2RAACSEDRX7raCbpYitQiqfcVIL5OxI501WIQ7tm14ZEd4mAosn+q6dwiqCIvWoAAF9XJUPD1Q/HPgmGUW5IDhwrkqQZ1v6iM0pI29DIuFbvu0Multl0TQbX58Pa7i2HLwoN1BoA6dv9wq9VmoJ0spNpjXQRGW1IUGsIrUH1jgBcZnOI3Z+0Anka/o2Ak2ZTl1tTHatAell4hHTd9rOHWxx3eE1kvwa3Rq2Gptm/ZzAYV7njgkin6aSoBOV/6dgm2du7L1E1djqweekOKTdWp+VACCMzO2AFyyVttHMV/iAejKSbi9+Ba0HGfiXTfoS3V2rkP+RdX6E/skgZgfDzazHjBRw16/+7qDVTBNrMQJLuoOPYUZe7mJykl1A6+LDpl1GrmWoadK1xFpeU/FnCicYSDQ+cyDW9k64d+MBMt1RpIHUXm86VL2bhmed93dJtxubMy5Law3Vz6Lq/JxGd3QRwP3eqHQmBSTs/Fr7Kd8qtdHoXC4Bs9x0rpLSwlb+Qk1K691Oi2QdRQUfeQ9G516xuBGpe82BlTee++586ZYER/2vV1/gzBMgQeMvykGtWsExRwEkTGdIjvtMq1KfgS8R96TCDP6U83O9qb63yM4BQ0S91hBJM7YhItec5yO3P8/SGn6AnutIUf06AAAAQJi/hvf5TtMIhM1R7asfoTFq5ENJADj2DQCLpjDUqPEYL0T5fn/7uW4nstddETzWAmkx4npq8V/Ia3drC57kzgoM/0IiBAgwfPAgBbCoS4JuJTkXwk9wogYWC5aw6w3kblL1ROlWiAAaFQkQgFAAAABulTxgjenLsklRyEOVVc56uBkov0XX6uBkovRzz0a3+y3HHbEIooFT1KTNszOYq+iew7mHKLheOcNHqnqJREW3bRcMigCsA2DVQLtkblyj2dVE/BN0GFBhXIhGM0hnEz+LK9c050AAAA);
+    }
+
+    @media (max-aspect-ratio: 41/50) {
+      :root[data-sky-raw] {
+        --sky-photo: url(data:image/webp;base64,UklGRmwDAABXRUJQVlA4IGADAACQOACdASosAYoCPrVaqlCnJSOioAgA4BaJaW7hbevzlWaVtH8Ae2H14x+gBPYB77ZOQ99sxlp7ZOQ99snIe+2TkPfbJyHvtk5D32ych77ZOQ99snIe+2TkPfbJyHvtk5D32ych8MVp7ZOQ99sp8UhBdpUCx6U+3AnIe+2T1bjInlECyXa8XLKr32ych77phvKmuTkPfbJyHvtXmOgIWcu9Vgghlw7yc0DSq11iNzMx4jXvkr///9tgpF66MOrqsQIEBgYy7jNzXITLZSoZnyNMjxwSj4368brlWqxjpBJsZZRIUf39MqHDaipL/VMfbzNMAJYIei3afdRIY2Tm0YBGfHUd1TQ3O2wFWTbXeRo1qIhaTzmk1zgfghSFSLVKKd/09snH+f5AIZERERDIigSIxiIiIiGREROJEREQyIiIiGRRSEZVERERDIiIn0LFHhSxyX3/2994k8X1TgolLteMh3X6wwJp5ND23NxxBHM5gxkxPkOGwvoorJdrxwIB76zYLtKgWS7XjrGvfeaPJff/bO8R0fEml4k0vEmstuu1499Iftrxcs8C/PYIg5Rp51vwxxC0uy38/DHKNPSUWYbdenrYH51k22AqybazAAD++Yz/8jMCN6r/mz7VcI1GgED9EfogAAAAAAAAABftTUoEJMrhc9XAGwUIz/TvAOd0IRB4AZL6x4DI7suLytA+ldb5tgA1Rf+l7nDh5e3vLOAwSmFfu8xv0Yjpkq/iTI7NfF0SB7NESzv+nnAw4X8FcO0ix+MrH3i6fn1+IhV12CUyMeHITQUukYdKyFwoPo+z3u5xAH6cpRWmiyqNAPS//3Rxg+vIQQ1FbRFPM0hKZwqK2xGEBK1KSQQ0CgV5ndmMIyd4JLMT3ak/QZdsGKo35FJWyFNxDg+6aeDTLAkMdRhqm5xf3cScsG1StEksB5L0IfksSo9DwNgTdBJRrdtofvXtF2PKIl1kOkIBTE1cSauJNXEmriTvEAUQDB4Kn9S8nJG03J9Daws8aeTGQhdawJwEMhhDIYQyGD/TLKAMOIVZ3cwTRWWdkBqtLIC6dQBatTkBe8VOoIyIC3GXlRUoT3EEijxP/iPPdt6zsdNpfbXxppb9b4A7cUgB3PR/5H0MxOiGgorPOIuy0DhaoYxAAAA=);
+      }
+    }
+
+    /* Sized to the viewport outright. While the page is still loading (a
+         slow dev server, before global.css arrives) <html> has almost no
+         height, and a gradient sized to it — the default — tiled every few
+         pixels: the whole sky came out ruled in thin stripes. */
+    html,
+    body {
+      height: 100%;
+      background-color: #9cc9ef;
+      background-image: var(--sky-dither, none), var(--sky-photo, none), linear-gradient(180deg, #7eb4e0 0%, #85bce8 16%, #8abfeb 30%, #9cc9ef 45%, #a8d4f4 60%, #b3dcf8 75%, #b5d8f1 90%, #b8cfdf 100%);
+      background-size: 128px 128px, cover, 100vw 100vh;
+      background-position: 0 0, center, 0 0;
+      background-repeat: repeat, no-repeat, no-repeat;
+      background-attachment: fixed;
+    }
+
+    /* The paper dart: one folded cream arrow, everywhere. It does not
+         change over controls — the controls lift on hover themselves, and a
+         press draws pencil taps from the tip (ui/sketchTaps.js). Every
+         `cursor: pointer` / `cursor: default` in the app reads these two
+         names, so both point at the same dart. Mouse-like pointers only —
+         touch has no cursor to replace. image-set picks the 2x file on a
+         retina screen so the fold stays crisp. */
+    @media (hover: hover) and (pointer: fine) {
+      :root {
+        --cursor-base: -webkit-image-set(url('/cursors/paper-dart.svg') 1x, url('/cursors/paper-dart@2x.svg') 2x) 5 4, default;
+        --cursor-link: var(--cursor-base);
+      }
+
+      html {
+        cursor: var(--cursor-base, default);
+      }
+
+      a[href],
+      button,
+      summary,
+      [role='button'] {
+        cursor: var(--cursor-link, pointer);
+      }
+    }
+
+    /* First-paint loader: a dandelion clock against the live sky.
+
+         Drawn on a canvas by the inline script at the end of <body>, so it is
+         on screen before React or any scene asset arrives. The pill under it
+         says what the meadow is doing and how far it has got while the clock
+         fills. Once it is ripe the visitor blows it — and that tap is also the
+         gesture the browser needs before the meadow may make a sound, which is
+         why the opening now waits for it instead of starting on a timer. */
+    #boot {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      pointer-events: none;
+      font-family: var(--font-ui, 'Nunito', 'Avenir Next', 'Segoe UI', system-ui, sans-serif);
+      font-weight: var(--weight-regular, 400);
+      line-height: 1.5;
+      transition: opacity 600ms ease;
+      -webkit-tap-highlight-color: transparent;
+
+      /* Clay, in the interface's own vocabulary.
+         -----------------------------------------------------------------------
+         The clay tokens live on .portfolio-interface in global.css, but #boot
+         mounts outside that wrapper — the same reason SkipOpening.css and
+         FpsMeter.css carry their own copies. Restating them here lets the
+         loader's pill, button and keycaps speak the same material as the menus
+         and pills. Values mirror global.css; if the pigments ever change there,
+         they change here too. */
+      --clay: #e9e2d0;
+      --clay-sunk: #ded5bf;
+      --clay-rim: rgba(255, 253, 246, 0.95);
+      --clay-core: rgba(150, 128, 96, 0.42);
+      --clay-cast: rgba(112, 94, 66, 0.24);
+      --clay-ink: #4c4636;
+      --clay-ink-soft: rgba(76, 70, 54, 0.5);
+      --clay-ink-muted: #5c5647;
+      --clay-accent: #b4522a;
+      --clay-accent-rim: rgba(247, 205, 179, 0.7);
+      --clay-accent-core: rgba(78, 28, 10, 0.5);
+      --clay-on-accent: #fdf6f1;
+      --clay-raised:
+        0 10px 18px -6px var(--clay-cast),
+        inset 0 -7px 12px -5px var(--clay-core),
+        inset 0 8px 12px -4px var(--clay-rim);
+      --clay-raised-soft:
+        0 5px 10px -5px var(--clay-cast),
+        inset 0 -5px 9px -5px var(--clay-core),
+        inset 0 6px 9px -4px var(--clay-rim);
+      --clay-pressed:
+        inset 0 7px 13px -4px var(--clay-core),
+        inset 0 -5px 9px -4px var(--clay-rim);
+      --clay-hollow-fine:
+        inset 0 3px 6px var(--clay-core),
+        inset 0 -1px 1px var(--clay-rim);
+    }
+
+    /* Ripe: the whole screen is the dandelion's to blow, not just the pill. */
+    #boot[data-ready] {
+      pointer-events: auto;
+      cursor: var(--cursor-link, pointer);
+    }
+
+    #boot[data-blown] {
+      pointer-events: none;
+      cursor: var(--cursor-base, default);
+    }
+
+    #boot[data-done] {
+      opacity: 0;
+    }
+
+    /* A returning visitor's opening starts with the word already down (see
+         OpeningWordmark), which the live sky behind the flower would cut to.
+         The painted sky — the same one, captured — goes up behind it
+         instead, and the overlay's own fade turns the cut into a dissolve. */
+    #boot[data-curtain] {
+      background: inherit;
+    }
+
+    /* A restrained pool of afternoon light, continuous with the meadow sky. */
+    #boot::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 40%, rgba(247, 239, 201, 0.16), transparent 46%);
+      pointer-events: none;
+      transition: opacity 900ms ease;
+    }
+
+    #boot[data-blown]::before {
+      opacity: 0;
+    }
+
+    #boot__canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: block;
+      width: 100%;
+      height: 100%;
+      /* Moved by the opening once the clock is blown: the flower is pinned
+           to the sky behind it, and goes where that sky goes. */
+      will-change: transform;
+    }
+
+    /* Progress is announced, not drawn: the seed head is the visible bar. */
+    #boot__stage {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    /* Pollen. Seven specks, each on its own slow climb; the meadow has
+         these too, once it is up. */
+    #boot__motes {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      transition: opacity 600ms ease;
+    }
+
+    #boot[data-blown] #boot__motes {
+      opacity: 0;
+    }
+
+    #boot__motes i {
+      position: absolute;
+      bottom: 30%;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(255, 250, 230, 0.85);
+      box-shadow: 0 0 6px 1px rgba(255, 250, 230, 0.45);
+      opacity: 0;
+      animation: boot-drift 11s linear infinite;
+    }
+
+    #boot__motes i:nth-child(1) {
+      left: 18%;
+      animation-delay: -1s;
+    }
+
+    #boot__motes i:nth-child(2) {
+      left: 31%;
+      animation-delay: -6.5s;
+      width: 3px;
+      height: 3px;
+    }
+
+    #boot__motes i:nth-child(3) {
+      left: 44%;
+      animation-delay: -3s;
+    }
+
+    #boot__motes i:nth-child(4) {
+      left: 57%;
+      animation-delay: -9s;
+      width: 3px;
+      height: 3px;
+    }
+
+    #boot__motes i:nth-child(5) {
+      left: 66%;
+      animation-delay: -5s;
+    }
+
+    #boot__motes i:nth-child(6) {
+      left: 79%;
+      animation-delay: -8s;
+      width: 5px;
+      height: 5px;
+    }
+
+    #boot__motes i:nth-child(7) {
+      left: 88%;
+      animation-delay: -2s;
+      width: 3px;
+      height: 3px;
+    }
+
+    @keyframes boot-drift {
+      0% {
+        transform: translate(0, 40px);
+        opacity: 0;
+      }
+
+      12% {
+        opacity: 0.9;
+      }
+
+      88% {
+        opacity: 0.9;
+      }
+
+      100% {
+        transform: translate(18px, -42vh);
+        opacity: 0;
+      }
+    }
+
+    /* The invitation. Built from the same clay pill as "skip the opening"
+         and "E · read" — a pulsing accent dot, a sentence, a keycap — because
+         that is how this interface says "there is a thing here to press". */
+    #boot__blow {
+      position: absolute;
+      left: 50%;
+      bottom: max(28px, calc(env(safe-area-inset-bottom) + 20px));
+      z-index: 4;
+      display: grid;
+      grid-template-columns: 12px auto auto;
+      align-items: center;
+      gap: 9px;
+      min-height: 48px;
+      box-sizing: border-box;
+      padding: 6px 7px 6px 12px;
+      border: 0;
+      border-radius: 20px;
+      background: var(--clay);
+      box-shadow: var(--clay-raised);
+      color: var(--clay-ink);
+      font-family: var(--font-ui, 'Nunito', 'Avenir Next', 'Segoe UI', system-ui, sans-serif);
+      font-size: var(--text-small, 14px);
+      font-weight: var(--weight-medium, 600);
+      line-height: 1.1;
+      white-space: nowrap;
+      cursor: var(--cursor-link, pointer);
+      opacity: 0;
+      transform: translate(-50%, 10px);
+      visibility: hidden;
+      transition: opacity 520ms ease, transform 620ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 620ms;
+    }
+
+    #boot[data-ready] #boot__blow {
+      opacity: 1;
+      transform: translate(-50%, 0);
+      visibility: visible;
+      transition: opacity 520ms ease, transform 620ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s;
+    }
+
+    #boot[data-blown] #boot__blow,
+    #boot[data-held] #boot__blow {
+      opacity: 0;
+      transform: translate(-50%, 6px) scale(0.97);
+      visibility: hidden;
+      transition: opacity 240ms ease, transform 240ms ease, visibility 0s linear 240ms;
+    }
+
+    #boot__blow:focus-visible {
+      outline: 2px solid var(--clay-accent);
+      outline-offset: 3px;
+    }
+
+    .boot-blow__signal {
+      justify-self: center;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--clay-accent);
+      box-shadow:
+        0 0 0 4px color-mix(in srgb, var(--clay-accent) 12%, transparent),
+        0 0 12px color-mix(in srgb, var(--clay-accent) 48%, transparent);
+      animation: boot-signal 1.8s ease-in-out infinite;
+    }
+
+    @keyframes boot-signal {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(0.7);
+        opacity: 0.6;
+      }
+    }
+
+    .boot-blow__key {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 12px;
+      background: var(--clay);
+      box-shadow: var(--clay-raised-soft);
+      color: var(--clay-ink);
+      font-family: var(--font-ui, 'Nunito', 'Avenir Next', 'Segoe UI', system-ui, sans-serif);
+      font-size: var(--text-micro, 11px);
+      font-weight: var(--weight-heavy, 800);
+      letter-spacing: 0.01em;
+    }
+
+    .boot-blow__key svg {
+      width: 15px;
+      height: 15px;
+      flex: none;
+    }
+
+    /* The meadow's progress, said where the invitation will be. The same clay
+         pill as the button it turns into, in the same place, so the visitor
+         is already looking at the right spot when the blow is offered.
+
+         The words say which part of the meadow is being made, and the number
+         counts how far it has got. On a slow phone the words can sit still for
+         a while mid-sentence, so they cycle and ellipsize rather than freeze:
+         nothing on this screen may ever look stuck.
+
+         It is on the very first frame on purpose, with real text in it: the
+         sky is a placeholder photo and the dandelion is a canvas, so without
+         this a browser has no largest contentful paint at all (Lighthouse then
+         reports NO_LCP). The words change in place and are never faded in,
+         so the first frame keeps it. */
+    /* The loader: a clay trough with bubbling green liquid filling it. The
+       words and the number sit above; the fill's width follows --boot-fraction
+       (Loader.jsx). Bubbles rise inside the fill and a few escape above its head
+       as foam. Same moulds as the joystick well and the other clay controls.
+       The words are real text from the first frame (this is the largest
+       contentful paint), and they change in place, never faded in. */
+    #boot__ripen {
+      position: absolute;
+      left: 50%;
+      bottom: max(34px, calc(env(safe-area-inset-bottom) + 24px));
+      z-index: 4;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 8px 12px;
+      width: min(236px, calc(100vw - 96px));
+      box-sizing: border-box;
+      padding: 0 2px;
+      color: var(--clay-ink);
+      font-family: var(--font-ui, 'Nunito', 'Avenir Next', 'Segoe UI', system-ui, sans-serif);
+      font-size: var(--text-small, 14px);
+      font-weight: var(--weight-medium, 600);
+      line-height: 1.1;
+      white-space: nowrap;
+      text-shadow: 0 1px 0 rgba(255, 253, 246, 0.6);
+      pointer-events: none;
+      transform: translate(-50%, 0);
+      transition: opacity 280ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    #boot[data-ready] #boot__ripen,
+    #boot[data-held] #boot__ripen,
+    #boot[data-blown] #boot__ripen {
+      opacity: 0;
+      transform: translate(-50%, 8px) scale(0.96);
+    }
+
+    .boot-ripen__copy {
+      grid-column: 1;
+      grid-row: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 12px;
+      font-weight: var(--weight-bold, 700);
+      letter-spacing: 0.02em;
+      text-transform: none; /* one voice: lowercase, see refinements.css */
+    }
+
+    .boot-ripen__copy::after {
+      content: '';
+      display: inline-block;
+      width: 1.1em;
+      text-align: left;
+      color: var(--clay-accent);
+      animation: boot-ripen-ellipsis 1.6s steps(4, end) infinite;
+    }
+
+    @keyframes boot-ripen-ellipsis {
+      0% { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75%, 100% { content: '...'; }
+    }
+
+    .boot-ripen__count {
+      grid-column: 2;
+      grid-row: 1;
+      color: var(--clay-ink-muted);
+      font-size: 12px;
+      font-weight: var(--weight-bold, 700);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* The trough: deep, outlined, with a bright lip along its lower edge. */
+    .boot-ripen__track {
+      position: relative;
+      grid-column: 1 / -1;
+      grid-row: 2;
+      height: 14px;
+      border-radius: 999px;
+      background: var(--clay-sunk);
+      box-shadow:
+        var(--clay-hollow-fine),
+        0 1px 0 rgba(255, 253, 246, 0.6);
+    }
+
+    .boot-ripen__fill {
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      bottom: 2px;
+      width: max(10px, calc((100% - 4px) * var(--boot-fraction, 0)));
+      overflow: hidden;
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0, rgba(255, 255, 255, 0) 50%),
+        linear-gradient(180deg, #9ccf52, #74b52a 60%, #5fa221);
+      box-shadow:
+        0 2px 4px -2px var(--clay-cast),
+        inset 0 -2px 3px rgba(36, 86, 8, 0.25);
+      transition: width 360ms cubic-bezier(0.25, 0.8, 0.3, 1);
+    }
+
+    /* A slow sheen sweeping along the liquid. */
+    .boot-ripen__fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -40%;
+      width: 34%;
+      background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+      transform: skewX(-18deg);
+      animation: boot-sheen 2.6s ease-in-out infinite;
+    }
+
+    @keyframes boot-sheen {
+      0% { left: -40%; }
+      55%, 100% { left: 120%; }
+    }
+
+    /* Bubbles inside the liquid: different sizes, each rising on its own beat. */
+    .boot-ripen__fill i,
+    .boot-ripen__foam i {
+      opacity: 0;
+      position: absolute;
+      left: var(--x);
+      bottom: -5px;
+      width: calc(var(--s) * 0.62);
+      height: calc(var(--s) * 0.62);
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95) 0 13%, rgba(255, 255, 255, 0.3) 32%, rgba(255, 255, 255, 0.1) 64%, rgba(255, 255, 255, 0.42) 100%);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+      opacity: 0;
+      animation: boot-bubble var(--t) ease-in infinite var(--d);
+    }
+
+    @keyframes boot-bubble {
+      0% { opacity: 0; transform: translate(0, 4px) scale(0.5); }
+      15% { opacity: 1; }
+      55% { transform: translate(calc(var(--w) * 0.6), -4px) scale(1); }
+      100% { opacity: 0; transform: translate(calc(var(--w) * -0.4), -14px) scale(1.05); }
+    }
+
+    /* Foam at the head of the fill: a few bubbles that escape the liquid. */
+    .boot-ripen__foam {
+      position: absolute;
+      left: calc(2px + (100% - 4px) * var(--boot-fraction, 0));
+      top: 3px;
+      width: 0;
+      height: 8px;
+      transition: left 360ms cubic-bezier(0.25, 0.8, 0.3, 1);
+    }
+
+    .boot-ripen__foam i {
+      bottom: 8px;
+      margin-left: -4px;
+      filter: drop-shadow(0 1px 1px rgba(40, 70, 10, 0.25));
+    }
+
+    .boot-blow__key {
+      height: 28px;
+      padding: 0 9px;
+      border: 1px solid rgba(255, 248, 221, 0.22);
+      border-radius: 999px;
+      background: rgba(255, 248, 221, 0.13);
+      box-shadow: none;
+      color: rgba(255, 248, 221, 0.9);
+    }
+    #boot__blow {
+      min-height: 48px;
+      padding: 6px 7px 6px 12px;
+      border: 0;
+      border-radius: 20px;
+      background: var(--clay);
+      box-shadow: var(--clay-raised);
+      color: var(--clay-ink);
+      text-shadow: none;
+      backdrop-filter: none;
+    }
+
+    .boot-blow__signal {
+      background: var(--clay-accent);
+      box-shadow:
+        0 0 0 4px color-mix(in srgb, var(--clay-accent) 12%, transparent),
+        0 0 12px color-mix(in srgb, var(--clay-accent) 48%, transparent);
+    }
+
+    .boot-blow__key {
+      height: 32px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--clay);
+      box-shadow: var(--clay-raised-soft);
+      color: var(--clay-ink);
+    }
+
+    @media (max-width: 420px) {
+      #boot__ripen {
+        width: min(304px, calc(100vw - 28px));
+        bottom: max(20px, calc(env(safe-area-inset-bottom) + 14px));
+      }
+    }
+
+    /* A visitor who silenced the meadow on an earlier visit is not promised
+         sound here. */
+    #boot[data-muted] .boot-blow__sound {
+      display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      #boot,
+      #boot__blow,
+      #boot__ripen,
+      .boot-ripen__copy {
+        transition: none;
+      }
+
+      .boot-ripen__copy::after {
+        animation: none;
+      }
+
+      .boot-ripen__fill i,
+      .boot-ripen__foam i,
+      .boot-ripen__fill::after {
+        animation: none;
+      }
+
+      .boot-ripen__fill,
+      .boot-ripen__foam {
+        transition: none;
+      }
+
+      .boot-blow__signal {
+        animation: none;
+      }
+
+      #boot__motes {
+        display: none;
+      }
+    }
+
+    /* The flat portfolio replaces the meadow in both of these, and it
+         carries its own explanation of why. */
+    :root[data-webgl='unavailable'] #boot,
+    :root[data-meadow='crashed'] #boot {
+      display: none;
+    }
+  </style>
+
+  <!-- The loader's status line is the first text painted, and it is set in
+         Nunito by the inline rule above — so this is where a fallback-font
+         flash would be seen. Vite rewrites this to the fingerprinted file global.css already
+         declares, so the preload and the @font-face resolve to the same URL.
+         One file: Nunito ships as a single variable woff2 for every weight. -->
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/nunito-latin-CjueodBP.woff2" />
+
+  <noscript>
+    <style>
+      /* html and body are pinned fixed at 100% height for the canvas.
+           Nothing is going to fill them here, and leaving them pinned clips
+           the work to one viewport with no way to scroll. */
+      html,
+      body {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        overflow: visible !important;
+        background: #f4f4f0 !important;
+      }
+
+      /* #root is the portfolio's sibling rather than its parent, and with
+           scripting off nothing will ever render into it. Unpinning it would
+           leave an empty sky-blue block sitting above the page. */
+      #root,
+      #boot {
+        display: none !important;
+      }
+
+      /* Only the javascript reason is true here; the webgl one stays hidden. */
+      .fb-why--nojs {
+        display: block !important;
+      }
+
+      .boot-fallback {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        margin-inline: auto !important;
+        overflow: visible !important;
+        clip: auto !important;
+        clip-path: none !important;
+        white-space: normal !important;
+      }
+    </style>
+  </noscript>
+
+  <!-- The dandelion clock from the loader, drawn by scripts/make-icons.mjs.
+         The .ico is for whatever asks for /favicon.ico by name (older
+         browsers, crawlers, bookmark tools); sizes="32x32" keeps browsers that
+         read SVG on the vector one, the simplified tab-size clock. -->
+  <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+  <!-- Names the site, its colour and its home-screen icons for Android's
+         "add to home screen", and nothing more. No service worker, no offline
+         story, no install prompt — a meadow that needs a GPU and 3 MB of
+         models is not a thing to pretend works offline. -->
+  <link rel="manifest" href="/site.webmanifest" />
+  <!-- Share URLs are absolute so social crawlers can reliably resolve the
+     canonical page and preview image. Keep canonical, og:url, og:image
+     and twitter:image aligned with the production domain. -->
+  <link rel="canonical" href="https://www.curllmooha.com/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Curllmooha" />
+  <meta property="og:title" content="Vipin Pathak – Three.js Developer | Interactive 3D Portfolio" />
+<meta name="robots" content="index, follow" />
+  <meta property="og:description"
+    content="Vipin Pathak (curllmooha) is a freelance Three.js and WebGL creative developer from India. Walk his interactive 3D portfolio, including the Polify studio site." />
+  <meta property="og:url" content="https://www.curllmooha.com/" />
+  <!-- JPEG, and one image rather than two. Rendered from the live opening
+         (the island read at 1200×820, cropped to 1200×675) with the name and
+         role set in Nunito, so the card shows what the site actually opens on. -->
+  <meta property="og:image" content="https://www.curllmooha.com/og-image.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="675" />
+  <meta property="og:image:alt"
+    content="The word curllmooha standing in the grass of a floating island above the clouds, dandelion seeds drifting over it, captioned vipin pathak · creative developer." />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@curllmooha" />
+  <meta name="twitter:creator" content="@curllmooha" />
+  <meta name="twitter:title" content="Vipin Pathak – Three.js Developer | Interactive 3D Portfolio" />
+  <meta name="twitter:description"
+    content="Vipin Pathak (curllmooha) is a freelance Three.js and WebGL creative developer from India. Walk his interactive 3D portfolio, including the Polify studio site." />
+  <meta name="twitter:image" content="https://www.curllmooha.com/og-image.jpg" />
+  <meta name="twitter:image:alt"
+    content="The word curllmooha standing in the grass of a floating island above the clouds, dandelion seeds drifting over it, captioned vipin pathak · creative developer." />
+
+  <!-- sameAs is the full set of profiles now. LinkedIn used to be held out
+         of it while the slug was unconfirmed; that TODO has been resolved in
+         profile.js, so the list matches CONTACT_LINKS again, plus the
+         sketchbook, which is his own second site. These are
+         identity signals — they are how a search engine ties this page to the
+         same person on other sites — so a missing one is a weaker match, and a
+         wrong one is worse than nothing. -->
+  <!-- The @id is what the generated block below hangs off: vite.config.js
+         emits a WebSite and one CreativeWork per project from projects.js, and
+         each of them points its creator here rather than restating who Vipin
+         is. One definition of the person, referenced by everything else. -->
+  <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "@id": "https://www.curllmooha.com/#vipin",
+        "name": "Vipin Pathak",
+        "alternateName": "Curllmooha",
+        "jobTitle": "Three.js Developer",
+        "description": "Freelance Three.js and WebGL creative developer from India building interactive 3D websites, 3D portfolios and shaders.",
+        "address": { "@type": "PostalAddress", "addressCountry": "IN" },
+        "nationality": { "@type": "Country", "name": "India" },
+        "url": "https://www.curllmooha.com/",
+        "image": "https://www.curllmooha.com/og-image.jpg",
+        "knowsAbout": [
+          "Three.js",
+          "Three.js development",
+          "3D portfolio",
+          "WebGL",
+          "GLSL",
+          "React Three Fiber",
+          "Creative coding",
+          "Interactive 3D",
+          "3D web development",
+          "Creative development"
+        ],
+        "sameAs": [
+          "https://sketchbook.curllmooha.com/",
+          "https://x.com/curllmooha",
+          "https://github.com/curllmooha",
+          "https://www.instagram.com/curllmooha",
+          "https://www.linkedin.com/in/vipinpathak018",
+          "https://www.behance.net/curllmooha"
+        ]
+      }
+    </script>
+  <link rel="stylesheet" crossorigin href="/src/styles/main.css">
+  <script type="module">
+    // 由 index.html 的 boot 脚本在首帧绘制完成后调用，避免进入构建图就被立即执行
+    window.__meadowEntry = () => import('/src/main.js')
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.curllmooha.com/#website",
+      "url": "https://www.curllmooha.com/",
+      "name": "Curllmooha",
+      "alternateName": [
+        "curllmooha",
+        "Vipin Pathak 3D portfolio"
+      ],
+      "description": "Vipin Pathak (curllmooha) is a freelance Three.js and WebGL creative developer from India. Walk his interactive 3D portfolio, including the Polify studio site.",
+      "inLanguage": "en",
+      "author": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      },
+      "publisher": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      },
+      "hasPart": [
+        {
+          "@id": "https://www.curllmooha.com/#project-polify"
+        },
+        {
+          "@id": "https://www.curllmooha.com/#project-aera"
+        },
+        {
+          "@id": "https://www.curllmooha.com/#project-brickblaster"
+        },
+        {
+          "@id": "https://www.curllmooha.com/#project-hologram"
+        },
+        {
+          "@id": "https://www.curllmooha.com/#project-paper-boat"
+        },
+        {
+          "@id": "https://www.curllmooha.com/#project-golden-hour"
+        },
+        {
+          "@id": "https://www.curllmooha.com/#project-cosmic-bloom"
+        },
+        {
+          "@id": "https://www.curllmooha.com/#sketchbook"
+        }
+      ]
+    },
+    {
+      "@type": "ProfilePage",
+      "@id": "https://www.curllmooha.com/#profile",
+      "url": "https://www.curllmooha.com/",
+      "name": "Vipin Pathak – Three.js Developer | Interactive 3D Portfolio",
+      "isPartOf": {
+        "@id": "https://www.curllmooha.com/#website"
+      },
+      "mainEntity": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      }
+    },
+    {
+      "@type": "CreativeWork",
+      "@id": "https://www.curllmooha.com/#project-polify",
+      "name": "polify",
+      "url": "https://www.polify.xyz/",
+      "mainEntityOfPage": "https://www.curllmooha.com/work/polify/",
+      "description": "the site of a web3 creative studio: a tilted wall of client work you can filter, with the studio’s cases, story and jobs sliding in as panels beside it.",
+      "genre": "studio website · freelance",
+      "dateCreated": "2026",
+      "keywords": "three.js, vanilla javascript, lenis",
+      "creator": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      },
+      "isPartOf": {
+        "@id": "https://www.curllmooha.com/#website"
+      }
+    },
+    {
+      "@type": "CreativeWork",
+      "@id": "https://www.curllmooha.com/#project-aera",
+      "name": "aera",
+      "url": "https://aerawe.vercel.app/",
+      "mainEntityOfPage": "https://www.curllmooha.com/work/aera/",
+      "description": "a concept product site for a water brand, set entirely underwater: two glass bottles drift among fish and bubbles as the page scrolls deeper.",
+      "genre": "3d product site",
+      "dateCreated": "2026",
+      "keywords": "three.js, react three fiber, gsap",
+      "creator": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      },
+      "isPartOf": {
+        "@id": "https://www.curllmooha.com/#website"
+      }
+    },
+    {
+      "@type": "CreativeWork",
+      "@id": "https://www.curllmooha.com/#project-brickblaster",
+      "name": "brickblaster",
+      "url": "https://lego-battle.vercel.app/",
+      "mainEntityOfPage": "https://www.curllmooha.com/work/brickblaster/",
+      "description": "a playable brick-built aerial combat world: fly, aim and defend the last brick sector in a compact browser mission.",
+      "genre": "interactive 3d game",
+      "dateCreated": "2026",
+      "keywords": "three.js, react three fiber, rapier",
+      "creator": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      },
+      "isPartOf": {
+        "@id": "https://www.curllmooha.com/#website"
+      }
+    },
+    {
+      "@type": "CreativeWork",
+      "@id": "https://www.curllmooha.com/#project-hologram",
+      "name": "hologram shader",
+      "url": "https://holo-mocha.vercel.app/",
+      "mainEntityOfPage": "https://www.curllmooha.com/work/hologram/",
+      "description": "a neon hologram laboratory where spacecraft flicker through scan lines, distortion and a reactive digital grid.",
+      "genre": "real-time shader experiment",
+      "dateCreated": "2025",
+      "keywords": "three.js, glsl, leva",
+      "creator": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      },
+      "isPartOf": {
+        "@id": "https://www.curllmooha.com/#website"
+      }
+    },
+    {
+      "@type": "CreativeWork",
+      "@id": "https://www.curllmooha.com/#project-paper-boat",
+      "name": "the paper boat",
+      "url": "https://waterboat.vercel.app/",
+      "mainEntityOfPage": "https://www.curllmooha.com/work/paper-boat/",
+      "description": "a quiet boat voyage across reflective water, composed as a small real-time cinematic at sunset.",
+      "genre": "cinematic webgl scene",
+      "dateCreated": "2025",
+      "keywords": "three.js, glsl, postprocessing",
+      "creator": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      },
+      "isPartOf": {
+        "@id": "https://www.curllmooha.com/#website"
+      }
+    },
+    {
+      "@type": "CreativeWork",
+      "@id": "https://www.curllmooha.com/#project-golden-hour",
+      "name": "golden hour",
+      "url": "https://golden-hour-one.vercel.app/",
+      "mainEntityOfPage": "https://www.curllmooha.com/work/golden-hour/",
+      "description": "a windswept tree on a small island in luminous water, with a swan and her cygnets drifting past — built around the colour, reflection and stillness of golden hour.",
+      "genre": "cinematic environment study",
+      "dateCreated": "2025",
+      "keywords": "three.js, glsl, react three fiber",
+      "creator": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      },
+      "isPartOf": {
+        "@id": "https://www.curllmooha.com/#website"
+      }
+    },
+    {
+      "@type": "CreativeWork",
+      "@id": "https://www.curllmooha.com/#project-cosmic-bloom",
+      "name": "cosmic bloom",
+      "url": "https://blob-mixer-zeta.vercel.app/",
+      "mainEntityOfPage": "https://www.curllmooha.com/work/cosmic-bloom/",
+      "description": "a morphing colour field shaped like a living bloom, mixing iridescent bands across a soft organic surface.",
+      "genre": "interactive generative shader",
+      "dateCreated": "2025",
+      "keywords": "three.js, glsl, creative coding",
+      "creator": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      },
+      "isPartOf": {
+        "@id": "https://www.curllmooha.com/#website"
+      }
+    },
+    {
+      "@type": "CreativeWork",
+      "@id": "https://www.curllmooha.com/#sketchbook",
+      "name": "the curllmooha sketchbook",
+      "url": "https://sketchbook.curllmooha.com/",
+      "description": "small webgl experiments, each on its own page. a few of them grew into the bigger projects in this meadow.",
+      "genre": "webgl studies",
+      "creator": {
+        "@id": "https://www.curllmooha.com/#vipin"
+      },
+      "isPartOf": {
+        "@id": "https://www.curllmooha.com/#website"
+      },
+      "hasPart": [
+        {
+          "@type": "CreativeWork",
+          "name": "Recursive Rounded Grid",
+          "url": "https://sketchbook.curllmooha.com/sketches/rounded-grid/",
+          "description": "A compact grid of soft-edged blocks continuously divides and reorganises itself in three dimensions.",
+          "position": 1,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Animated Subdivision Pillars",
+          "url": "https://sketchbook.curllmooha.com/sketches/subdivision-pillars/",
+          "description": "A warm architectural field divides one footprint into rounded pillars of changing size and height.",
+          "position": 2,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Reactive Blade Ring",
+          "url": "https://sketchbook.curllmooha.com/sketches/grass-blades/",
+          "description": "A circular array of soft capsule blades bends and changes colour around an orbiting light.",
+          "position": 3,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Raymarched Liquid Shells",
+          "url": "https://sketchbook.curllmooha.com/sketches/liquid-shells/",
+          "description": "Three glossy spherical shells dissolve into noisy openings around a luminous inner core.",
+          "position": 4,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Noise-Driven Voxel Cube",
+          "url": "https://sketchbook.curllmooha.com/sketches/floating-cubes/",
+          "description": "Up to one thousand rounded voxels form a cube that erodes, rotates, and rebuilds through a moving noise field.",
+          "position": 5,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Procedural Lego Terrain",
+          "url": "https://sketchbook.curllmooha.com/sketches/lego-waves/",
+          "description": "Thousands of studded toy bricks assemble into a stepped terrain of waves, ridges, and craters.",
+          "position": 6,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Rolling Ball Puck Field",
+          "url": "https://sketchbook.curllmooha.com/sketches/rolling-ball/",
+          "description": "A plain white ball sinks into a dense field of rounded pucks, pressing a smooth bowl as it rolls and leaving a wake that glows coral, then fades through magenta and indigo to white.",
+          "position": 7,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Proximity Fracture Sphere",
+          "url": "https://sketchbook.curllmooha.com/sketches/tear-apart/",
+          "description": "A pre-fractured dark sphere opens toward the pointer and reveals an electric blue interior.",
+          "position": 8,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Kinetic Coin Ring",
+          "url": "https://sketchbook.curllmooha.com/sketches/coin/",
+          "description": "Fifteen metallic coin-like discs rotate in a circular arrangement under warm reflected light.",
+          "position": 9,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Iridescent Water Drop",
+          "url": "https://sketchbook.curllmooha.com/sketches/blob/",
+          "description": "A drop of water turning slowly, refracting the room behind it and breaking into spectrum where its surface turns away from you.",
+          "position": 10,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Physics Glass Typography",
+          "url": "https://sketchbook.curllmooha.com/sketches/studio-glass/",
+          "description": "The word “TOUCH” becomes a set of refractive rigid bodies that can be pushed around the studio.",
+          "position": 11,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Kinetic Tile Grid",
+          "url": "https://sketchbook.curllmooha.com/sketches/tile-break/",
+          "description": "An eight-by-eight surface opens selected tiles from hinged edges, automatically or under your pointer.",
+          "position": 12,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Twisted Cylinder Ribbon",
+          "url": "https://sketchbook.curllmooha.com/sketches/twisted-dna/",
+          "description": "A responsive line of coloured cylinders twists into a continuous ribbon-like wave.",
+          "position": 13,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Layered Disc Repulsion",
+          "url": "https://sketchbook.curllmooha.com/sketches/honey-blast/",
+          "description": "Five dense layers of small discs repel, tilt, and brighten around an oscillating luminous sphere.",
+          "position": 14,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Chromatic Domino Trail",
+          "url": "https://sketchbook.curllmooha.com/sketches/domino-ring/",
+          "description": "Touch any piece in a winding installation of colourful, pip-marked dominoes to release a two-way physical chain reaction.",
+          "position": 15,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Sunlit Shore",
+          "url": "https://sketchbook.curllmooha.com/sketches/ocean-shore/",
+          "description": "A slice of coast held in a glass tank: palms on the dune, a school working the shallows, a whale in the deep end, and a sea that turns bioluminescent after dark.",
+          "position": 16,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Shoal",
+          "url": "https://sketchbook.curllmooha.com/sketches/fish-school/",
+          "description": "Looking up through open water at a school of jacks circling beneath the sun, then travelling, drifting apart and closing ranks again while light shafts fall through the swell.",
+          "position": 17,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        },
+        {
+          "@type": "CreativeWork",
+          "name": "Two Shores",
+          "url": "https://sketchbook.curllmooha.com/sketches/two-shores/",
+          "description": "Brush away a beach to find the open sea underneath, where a whole day passes from dawn through sunset to a starlit night - or freeze it all into Antarctica.",
+          "position": 18,
+          "creator": {
+            "@id": "https://www.curllmooha.com/#vipin"
+          }
+        }
+      ]
+    }
+  ]
+}
+    </script>
+    <script>window.__rapierWasm = "/assets/rapier_wasm3d_bg-u8gCVdJH.wasm"</script>
+  </head>
+
+<body>
+  <div id="root"></div>
+
+      <div class="boot-fallback fx" id="boot-fallback">
+        <main class="fb-main">
+        <p class="fb-notice">you’re reading the flat version of my 3d portfolio.</p>
+
+        <header class="fb-hero">
+          <svg class="fx-doodle fx-doodle--flight" viewBox="0 0 260 170" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><mask id="fb-flight" maskUnits="userSpaceOnUse"><path d="M8 150 C40 146 62 108 100 96 C146 82 168 120 142 136 C116 152 98 116 124 86 C150 56 196 52 238 34" stroke="#fff" stroke-width="8" pathLength="1" style="--d:0s" /></mask><path class="fx-route" d="M8 150 C40 146 62 108 100 96 C146 82 168 120 142 136 C116 152 98 116 124 86 C150 56 196 52 238 34" stroke-width="2" stroke-dasharray="0.1 7" mask="url(#fb-flight)" /><g transform="translate(244 31) rotate(-24)" class="fx-dart"><path d="M0 0 L-30 -11 L-21 0 L-30 11 Z" stroke-width="2" pathLength="1" style="--d:1.1s" /><path d="M-21 0 L0 0 M-30 -11 L-15 1" stroke-width="1.6" pathLength="1" style="--d:1.25s" /></g></svg>
+          <h1>hi, i’m <em>vipin</em> <span>aka curllmooha</span></h1>
+          <div class="fb-lede">
+            <p>i’m a creative developer from india. most of what i write is three.js and glsl, with gsap for anything that has to move.</p>
+            <p>this meadow is my 3d portfolio. every project is somewhere in it, so have a look around. you can walk anywhere you like. the birds will judge you, but you can.</p>
+            <p>i spend way too long on things nobody asked for. the grass bends where you’ve walked, for example. you’re welcome.</p>
+            <p>lately i’ve been learning webgpu and tsl, so expect things to break in new and exciting ways.</p>
+          </div>
+          <ul class="fb-skills"><li>three.js</li><li>react three fiber</li><li>glsl</li><li>gsap</li><li>webgl</li><li>creative development</li></ul>
+          <p class="fx-status"><i aria-hidden="true"></i>open to freelance work and collabs.</p>
+          <div class="fb-actions">
+            <a class="fx-btn" href="mailto:vipinpathak018@gmail.com"><span class="fx-btn__fill" aria-hidden="true"></span><span class="fx-btn__label" data-label="say hi →"><span>say hi →</span></span></a>
+            <a class="fx-link" href="/hire/">work with me<i aria-hidden="true">&#8594;</i></a>
+            <a class="fx-link" href="https://sketchbook.curllmooha.com/" rel="noopener noreferrer">the sketchbook<i aria-hidden="true">&#8599;</i></a>
+            <a class="fx-link" href="/vipin-pathak-resume.pdf">resume (pdf)<i aria-hidden="true">&#8599;</i></a>
+          </div>
+        </header>
+
+        <section class="fb-section">
+          <h2>selected <em>work</em><svg class="fx-doodle fx-doodle--sparkle" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 3 C21 15 25 19 37 20 C25 21 21 25 20 37 C19 25 15 21 3 20 C15 19 19 15 20 3 Z" stroke-width="2" pathLength="1" style="--d:0.2s" /></svg></h2>
+          <ol class="fb-work">
+              <li class="fb-work__item">
+                <span class="fb-work__num">01</span>
+                <div>
+                  <h3 class="fb-work__title"><a href="/work/polify/">polify</a><i aria-hidden="true">&#8594;</i></h3>
+                  <p class="fb-work__type">studio website · freelance · 2026 · client project</p>
+                  <p class="fb-work__desc">the site of a web3 creative studio: a tilted wall of client work you can filter, with the studio’s cases, story and jobs sliding in as panels beside it.</p>
+                  <p class="fb-work__desc">tilted, filterable work wall · sliding side panels · hover and press micro-interactions</p>
+                  <p class="fb-work__tools">three.js · vanilla javascript · lenis</p>
+                </div>
+              </li>
+              <li class="fb-work__item">
+                <span class="fb-work__num">02</span>
+                <div>
+                  <h3 class="fb-work__title"><a href="/work/aera/">aera</a><i aria-hidden="true">&#8594;</i></h3>
+                  <p class="fb-work__type">3d product site · 2026 · personal project</p>
+                  <p class="fb-work__desc">a concept product site for a water brand, set entirely underwater: two glass bottles drift among fish and bubbles as the page scrolls deeper.</p>
+                  <p class="fb-work__desc">scroll-driven descent · glass and bubble materials · underwater soundscape</p>
+                  <p class="fb-work__tools">three.js · react three fiber · gsap</p>
+                </div>
+              </li>
+              <li class="fb-work__item">
+                <span class="fb-work__num">03</span>
+                <div>
+                  <h3 class="fb-work__title"><a href="/work/brickblaster/">brickblaster</a><i aria-hidden="true">&#8594;</i></h3>
+                  <p class="fb-work__type">interactive 3d game · 2026 · personal project</p>
+                  <p class="fb-work__desc">a playable brick-built aerial combat world: fly, aim and defend the last brick sector in a compact browser mission.</p>
+                  <p class="fb-work__desc">arcade flight controls · destructible brick battlefield · cinematic mission ui</p>
+                  <p class="fb-work__tools">three.js · react three fiber · rapier</p>
+                </div>
+              </li>
+              <li class="fb-work__item">
+                <span class="fb-work__num">04</span>
+                <div>
+                  <h3 class="fb-work__title"><a href="/work/hologram/">hologram shader</a><i aria-hidden="true">&#8594;</i></h3>
+                  <p class="fb-work__type">real-time shader experiment · 2025 · personal project</p>
+                  <p class="fb-work__desc">a neon hologram laboratory where spacecraft flicker through scan lines, distortion and a reactive digital grid.</p>
+                  <p class="fb-work__desc">procedural hologram material · animated scanline interference · interactive shader controls</p>
+                  <p class="fb-work__tools">three.js · glsl · leva</p>
+                </div>
+              </li>
+              <li class="fb-work__item">
+                <span class="fb-work__num">05</span>
+                <div>
+                  <h3 class="fb-work__title"><a href="/work/paper-boat/">the paper boat</a><i aria-hidden="true">&#8594;</i></h3>
+                  <p class="fb-work__type">cinematic webgl scene · 2025 · personal project</p>
+                  <p class="fb-work__desc">a quiet boat voyage across reflective water, composed as a small real-time cinematic at sunset.</p>
+                  <p class="fb-work__desc">real-time ocean surface · cinematic lighting &amp; camera · reflections and atmosphere</p>
+                  <p class="fb-work__tools">three.js · glsl · postprocessing</p>
+                </div>
+              </li>
+              <li class="fb-work__item">
+                <span class="fb-work__num">06</span>
+                <div>
+                  <h3 class="fb-work__title"><a href="/work/golden-hour/">golden hour</a><i aria-hidden="true">&#8594;</i></h3>
+                  <p class="fb-work__type">cinematic environment study · 2025 · personal project</p>
+                  <p class="fb-work__desc">a windswept tree on a small island in luminous water, with a swan and her cygnets drifting past — built around the colour, reflection and stillness of golden hour.</p>
+                  <p class="fb-work__desc">sculptural procedural tree · sunset light study · reflections, drifting leaves and swans</p>
+                  <p class="fb-work__tools">three.js · glsl · react three fiber</p>
+                </div>
+              </li>
+              <li class="fb-work__item">
+                <span class="fb-work__num">07</span>
+                <div>
+                  <h3 class="fb-work__title"><a href="/work/cosmic-bloom/">cosmic bloom</a><i aria-hidden="true">&#8594;</i></h3>
+                  <p class="fb-work__type">interactive generative shader · 2025 · personal project</p>
+                  <p class="fb-work__desc">a morphing colour field shaped like a living bloom, mixing iridescent bands across a soft organic surface.</p>
+                  <p class="fb-work__desc">noise-driven deformation · iridescent colour mixing · real-time organic motion</p>
+                  <p class="fb-work__tools">three.js · glsl · creative coding</p>
+                </div>
+              </li>
+          </ol>
+        </section>
+
+        <section class="fb-section">
+          <h2>the sketchbook</h2>
+          <p class="fb-lede">small webgl experiments, each on its own page. a few of them grew into the bigger projects in this meadow.</p>
+          <p class="fb-sketch-link"><a class="fx-link" href="https://sketchbook.curllmooha.com/" rel="noopener noreferrer">sketchbook.curllmooha.com<i aria-hidden="true">&#8599;</i></a></p>
+          <ol class="fb-sketches">
+              <li><span class="fb-work__num">01</span> <a href="https://sketchbook.curllmooha.com/sketches/rounded-grid/" rel="noopener noreferrer">recursive rounded grid</a> — A compact grid of soft-edged blocks continuously divides and reorganises itself in three dimensions.</li>
+              <li><span class="fb-work__num">02</span> <a href="https://sketchbook.curllmooha.com/sketches/subdivision-pillars/" rel="noopener noreferrer">animated subdivision pillars</a> — A warm architectural field divides one footprint into rounded pillars of changing size and height.</li>
+              <li><span class="fb-work__num">03</span> <a href="https://sketchbook.curllmooha.com/sketches/grass-blades/" rel="noopener noreferrer">reactive blade ring</a> — A circular array of soft capsule blades bends and changes colour around an orbiting light.</li>
+              <li><span class="fb-work__num">04</span> <a href="https://sketchbook.curllmooha.com/sketches/liquid-shells/" rel="noopener noreferrer">raymarched liquid shells</a> — Three glossy spherical shells dissolve into noisy openings around a luminous inner core.</li>
+              <li><span class="fb-work__num">05</span> <a href="https://sketchbook.curllmooha.com/sketches/floating-cubes/" rel="noopener noreferrer">noise-driven voxel cube</a> — Up to one thousand rounded voxels form a cube that erodes, rotates, and rebuilds through a moving noise field.</li>
+              <li><span class="fb-work__num">06</span> <a href="https://sketchbook.curllmooha.com/sketches/lego-waves/" rel="noopener noreferrer">procedural lego terrain</a> — Thousands of studded toy bricks assemble into a stepped terrain of waves, ridges, and craters.</li>
+              <li><span class="fb-work__num">07</span> <a href="https://sketchbook.curllmooha.com/sketches/rolling-ball/" rel="noopener noreferrer">rolling ball puck field</a> — A plain white ball sinks into a dense field of rounded pucks, pressing a smooth bowl as it rolls and leaving a wake that glows coral, then fades through magenta and indigo to white.</li>
+              <li><span class="fb-work__num">08</span> <a href="https://sketchbook.curllmooha.com/sketches/tear-apart/" rel="noopener noreferrer">proximity fracture sphere</a> — A pre-fractured dark sphere opens toward the pointer and reveals an electric blue interior.</li>
+              <li><span class="fb-work__num">09</span> <a href="https://sketchbook.curllmooha.com/sketches/coin/" rel="noopener noreferrer">kinetic coin ring</a> — Fifteen metallic coin-like discs rotate in a circular arrangement under warm reflected light.</li>
+              <li><span class="fb-work__num">10</span> <a href="https://sketchbook.curllmooha.com/sketches/blob/" rel="noopener noreferrer">iridescent water drop</a> — A drop of water turning slowly, refracting the room behind it and breaking into spectrum where its surface turns away from you.</li>
+              <li><span class="fb-work__num">11</span> <a href="https://sketchbook.curllmooha.com/sketches/studio-glass/" rel="noopener noreferrer">physics glass typography</a> — The word “TOUCH” becomes a set of refractive rigid bodies that can be pushed around the studio.</li>
+              <li><span class="fb-work__num">12</span> <a href="https://sketchbook.curllmooha.com/sketches/tile-break/" rel="noopener noreferrer">kinetic tile grid</a> — An eight-by-eight surface opens selected tiles from hinged edges, automatically or under your pointer.</li>
+              <li><span class="fb-work__num">13</span> <a href="https://sketchbook.curllmooha.com/sketches/twisted-dna/" rel="noopener noreferrer">twisted cylinder ribbon</a> — A responsive line of coloured cylinders twists into a continuous ribbon-like wave.</li>
+              <li><span class="fb-work__num">14</span> <a href="https://sketchbook.curllmooha.com/sketches/honey-blast/" rel="noopener noreferrer">layered disc repulsion</a> — Five dense layers of small discs repel, tilt, and brighten around an oscillating luminous sphere.</li>
+              <li><span class="fb-work__num">15</span> <a href="https://sketchbook.curllmooha.com/sketches/domino-ring/" rel="noopener noreferrer">chromatic domino trail</a> — Touch any piece in a winding installation of colourful, pip-marked dominoes to release a two-way physical chain reaction.</li>
+              <li><span class="fb-work__num">16</span> <a href="https://sketchbook.curllmooha.com/sketches/ocean-shore/" rel="noopener noreferrer">sunlit shore</a> — A slice of coast held in a glass tank: palms on the dune, a school working the shallows, a whale in the deep end, and a sea that turns bioluminescent after dark.</li>
+              <li><span class="fb-work__num">17</span> <a href="https://sketchbook.curllmooha.com/sketches/fish-school/" rel="noopener noreferrer">shoal</a> — Looking up through open water at a school of jacks circling beneath the sun, then travelling, drifting apart and closing ranks again while light shafts fall through the swell.</li>
+              <li><span class="fb-work__num">18</span> <a href="https://sketchbook.curllmooha.com/sketches/two-shores/" rel="noopener noreferrer">two shores</a> — Brush away a beach to find the open sea underneath, where a whole day passes from dawn through sunset to a starlit night - or freeze it all into Antarctica.</li>
+          </ol>
+        </section>
+
+        <section class="fb-section fb-contact">
+          <h2>say hi.</h2>
+          <p class="fb-lede">got freelance work, a collab idea, or a question about how something here was built? email is the quickest way to reach me.</p>
+          <div class="fx-email">
+            <a class="fx-btn fx-btn--light" href="mailto:vipinpathak018@gmail.com"><span class="fx-btn__fill" aria-hidden="true"></span><span class="fx-btn__label" data-label="vipinpathak018@gmail.com →"><span>vipinpathak018@gmail.com →</span></span></a>
+            <button class="fx-copy" type="button" data-copy="vipinpathak018@gmail.com"><span class="fx-copy__label" data-done="copied ✓">copy</span></button>
+          </div>
+          <p><a class="fx-link" href="/hire/">what i build and how a project goes<i aria-hidden="true">&#8594;</i></a></p>
+          <ul class="fb-socials">
+              <li><a class="fx-link" href="https://x.com/curllmooha" rel="noopener noreferrer">x / twitter<i aria-hidden="true">&#8599;</i></a></li>
+              <li><a class="fx-link" href="https://www.linkedin.com/in/vipinpathak018" rel="noopener noreferrer">linkedin<i aria-hidden="true">&#8599;</i></a></li>
+              <li><a class="fx-link" href="https://www.instagram.com/curllmooha" rel="noopener noreferrer">instagram<i aria-hidden="true">&#8599;</i></a></li>
+              <li><a class="fx-link" href="https://github.com/curllmooha" rel="noopener noreferrer">github<i aria-hidden="true">&#8599;</i></a></li>
+              <li><a class="fx-link" href="https://www.behance.net/curllmooha" rel="noopener noreferrer">behance<i aria-hidden="true">&#8599;</i></a></li>
+          </ul>
+        </section>
+        </main>
+
+        <footer class="fb-foot">
+          <p class="fb-foot__lead">the full meadow — grass, weather, a day that turns to night — is on the other side of this page.</p>
+          <p class="fb-why fb-why--webgl">the meadow is drawn with webgl, and this browser didn’t hand over a canvas to draw it on. another browser — or this one with hardware acceleration switched back on — will grow the whole thing.</p>
+          <p class="fb-why fb-why--nojs">the meadow is drawn with javascript, and it’s switched off here. turn it on and the whole thing grows in.</p>
+          <p class="fb-why fb-why--crash">something in the meadow gave way while it was growing, so here is the flat version instead. a reload usually settles it — and if it doesn’t, i would genuinely like to know.</p>
+          <p class="fb-foot__sig">vipin pathak · curllmooha</p>
+        </footer>
+      </div>
+  <!-- Styled by the inline rule in <head>, driven by src/loader/Loader.jsx,
+         hidden by <noscript> and by the two fallback reveals. The percentage
+         is aria-hidden because the progressbar already carries the number;
+         the drawing is aria-hidden because the progressbar already is it.
+         The words are static markup so the very first paint has them. -->
+  <div id="boot" aria-busy="true">
+    <canvas id="boot__canvas" aria-hidden="true"></canvas>
+    <div id="boot__stage" role="progressbar" aria-label="Loading the meadow" aria-valuemin="0" aria-valuemax="100"
+      aria-valuenow="0"></div>
+    <div id="boot__motes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div id="boot__ripen" role="status">
+      <span class="boot-ripen__copy">loading the meadow</span>
+      <span class="boot-ripen__count" aria-hidden="true">0%</span>
+      <span class="boot-ripen__track" aria-hidden="true">
+        <span class="boot-ripen__fill"><i style="--x:47%;--s:6px;--d:0.87s;--t:1.65s;--w:-5px"></i><i style="--x:52%;--s:9px;--d:0.13s;--t:2.11s;--w:-5px"></i><i style="--x:17%;--s:8px;--d:0.92s;--t:1.84s;--w:5px"></i><i style="--x:13%;--s:9px;--d:0.27s;--t:1.82s;--w:-5px"></i><i style="--x:79%;--s:9px;--d:0.87s;--t:2.58s;--w:-5px"></i><i style="--x:77%;--s:6px;--d:0.64s;--t:1.74s;--w:-5px"></i><i style="--x:79%;--s:7px;--d:1.23s;--t:2.28s;--w:-5px"></i><i style="--x:80%;--s:9px;--d:1.41s;--t:1.97s;--w:-5px"></i><i style="--x:78%;--s:5px;--d:1.36s;--t:2.1s;--w:5px"></i><i style="--x:46%;--s:8px;--d:1.29s;--t:2.05s;--w:3px"></i><i style="--x:37%;--s:6px;--d:1.54s;--t:1.84s;--w:3px"></i><i style="--x:73%;--s:8px;--d:1.93s;--t:2.33s;--w:3px"></i><i style="--x:83%;--s:5px;--d:0.26s;--t:2.02s;--w:3px"></i><i style="--x:25%;--s:8px;--d:0.93s;--t:2.56s;--w:-5px"></i></span>
+        <span class="boot-ripen__foam"><i style="--x:0px;--s:7px;--d:0.0s;--t:1.7s;--w:-4px"></i><i style="--x:-6px;--s:5px;--d:0.6s;--t:2.1s;--w:3px"></i><i style="--x:5px;--s:9px;--d:1.1s;--t:1.9s;--w:4px"></i><i style="--x:-3px;--s:6px;--d:1.5s;--t:2.3s;--w:-3px"></i></span>
+      </span>
+    </div>
+    <button id="boot__blow" type="button">
+      <span class="boot-blow__signal" aria-hidden="true"></span>
+      <span class="boot-blow__copy">blow the dandelion</span>
+      <span class="boot-blow__key" aria-hidden="true">
+        <svg class="boot-blow__sound" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 5 6 9H3v6h3l5 4z" />
+          <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+          <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+        </svg>
+        <span id="boot__verb">tap</span>
+      </span>
+    </button>
+  </div>
+  <!-- The dandelion. Inline and dependency-free on purpose: it has to be on
+         screen before the module graph has even started to load. It exposes
+         window.__bootDandelion for src/loader/Loader.jsx to drive. -->
+  <script>
+      (function () {
+        'use strict'
+        var root = document.getElementById('boot')
+        var canvas = document.getElementById('boot__canvas')
+        var button = document.getElementById('boot__blow')
+        // The meadow's own code waits for this (see deferEntryScripts in
+        // vite.config.js): the flower gets the main thread first, so a slow
+        // phone is not left looking at an empty sky while ~600 KB of
+        // JavaScript runs ahead of it.
+        var signalDrawing = function () {
+          if (window.__bootDrawing) return
+          window.__bootDrawing = true
+          try { window.dispatchEvent(new Event('meadow:boot-drawing')) } catch (error) { /* the cap starts it anyway */ }
+        }
+        if (!root || !canvas || !canvas.getContext) {
+          signalDrawing()
+          return
+        }
+
+        var media = function (query) {
+          return !!(window.matchMedia && window.matchMedia(query).matches)
+        }
+        var reduced = media('(prefers-reduced-motion: reduce)')
+        var touch = media('(hover: none), (pointer: coarse)')
+        var verb = document.getElementById('boot__verb')
+        if (verb) verb.textContent = touch ? 'tap' : 'click'
+
+        // Where the flower stands for a viewport. Shared by the renderer and by
+        // this thread, which needs it to aim a blow and to answer head().
+        function dandelionGeometry(w, h) {
+          var R = Math.max(62, Math.min(w * 0.27, h * 0.2, 160))
+          var cx = w * 0.5
+          var cy = h * (w < h ? 0.4 : 0.42)
+          return {
+            W: w,
+            H: h,
+            R: R,
+            cx: cx,
+            cy: cy,
+            // The stem leaves the frame low and a little to the left.
+            baseX: cx - Math.min(w * 0.16, R * 1.1),
+            baseY: h + 24,
+          }
+        }
+
+        /*
+         * Everything that draws the dandelion, free of the DOM, so it can run
+         * in a worker.
+         *
+         * The loading screen is exactly when the main thread is busiest: the
+         * whole meadow is mounted, parsed and compiled under it. Drawn on the
+         * main thread, the flower grew at whatever frame rate that left over
+         * — a handful of frames a second while the world was built, which is
+         * what made the seed head fill slowly and stutter. In a worker, on an
+         * OffscreenCanvas, it keeps its own frames however long the main
+         * thread is held. `env` supplies the three things that differ between
+         * the two homes: how to make a sprite canvas, how to wait for a frame,
+         * and the viewport it is laid out for.
+         */
+        function dandelionRenderer(canvas, env) {
+          var ctx = canvas.getContext('2d')
+          if (!ctx) return null
+          var reduced = env.reduced
+          var touch = env.touch
+          var size = env.size
+
+          // Deterministic, so the clock is the same clock on every visit.
+          var state = 1729
+          var rand = function () {
+            state = (state + 0x6d2b79f5) | 0
+            var t = Math.imul(state ^ (state >>> 15), 1 | state)
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+          }
+          var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v }
+          var smooth = function (a, b, v) {
+            var t = clamp((v - a) / (b - a), 0, 1)
+            return t * t * (3 - 2 * t)
+          }
+
+          // ---- The clock, in head units (1 = head radius R) -------------------
+          // Seeds sit on a Fibonacci sphere, minus the cap the stem occupies. Each
+          // is an achene near the centre, a long beak, and at the beak's tip a
+          // pappus: an umbrella of plumose bristles. The umbrellas overlap into
+          // the sphere of fluff, which is the dandelion clock.
+          var COUNT = touch ? 96 : 132
+          var TILT = -0.2 // seen from a touch below, so the stem reads
+          var seeds = []
+          var total = Math.round(COUNT * 1.22)
+          for (var i = 0; i < total && seeds.length < COUNT; i++) {
+            var y = 1 - (2 * (i + 0.5)) / total
+            if (y < -0.64) continue
+            var ring = Math.sqrt(1 - y * y)
+            var phi = i * 2.399963229728653 + (rand() - 0.5) * 0.4
+            var dx = Math.cos(phi) * ring + (rand() - 0.5) * 0.05
+            var dy = y + (rand() - 0.5) * 0.05
+            var dz = Math.sin(phi) * ring + (rand() - 0.5) * 0.05
+            // Tilt the whole head toward the viewer a touch.
+            var ty = dy * Math.cos(TILT) - dz * Math.sin(TILT)
+            var tz = dy * Math.sin(TILT) + dz * Math.cos(TILT)
+            var len = Math.sqrt(dx * dx + ty * ty + tz * tz)
+            seeds.push({
+              x: dx / len, y: ty / len, z: tz / len,
+              reach: 0.64 + rand() * 0.05,
+              order: rand(),
+              phase: rand() * Math.PI * 2,
+              flutter: 0.6 + rand() * 0.8,
+              seed: Math.floor(rand() * 1e9),
+              sprite: null,
+            })
+          }
+          // Back to front, fixed: the head only ever sways in the image plane.
+          seeds.sort(function (a, b) { return a.z - b.z })
+
+          var dpr = 1
+          var W = 0
+          var H = 0
+          var R = 0
+          var cx = 0
+          var cy = 0
+          var baseX = 0
+          var baseY = 0
+          var spriteR = 0
+          var nextSprite = 0
+
+          function layout() {
+            var w = size.w
+            var h = size.h
+            dpr = size.dpr
+            W = w
+            H = h
+            canvas.width = Math.round(w * dpr)
+            canvas.height = Math.round(h * dpr)
+            var geometry = dandelionGeometry(w, h)
+            R = geometry.R
+            cx = geometry.cx
+            cy = geometry.cy
+            baseX = geometry.baseX
+            baseY = geometry.baseY
+            // Sprites are cached at the head's size; a real change of size
+            // redraws them.
+            if (!spriteR || Math.abs(R - spriteR) / spriteR > 0.08) {
+              spriteR = R
+              nextSprite = 0
+              for (var s = 0; s < seeds.length; s++) seeds[s].sprite = null
+            }
+          }
+
+          // One seed's pappus, rendered once to its own small canvas. Bristles
+          // leave the beak's tip at 55-80 degrees to it — an umbrella — and each
+          // carries fine side hairs over its outer two thirds, which is what makes
+          // the fluff soft instead of spiky. Everything is projected from 3D, so a
+          // seed pointing at you is a starburst and one side-on is a fan.
+          function buildSprite(s) {
+            var r = s.seed
+            var prand = function () {
+              r = (r + 0x6d2b79f5) | 0
+              var t = Math.imul(r ^ (r >>> 15), 1 | r)
+              t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+              return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+            }
+            var scale = R * Math.min(dpr, 1.5)
+            // Basis around the seed's axis.
+            var ax = s.x, ay = s.y, az = s.z
+            var ux, uy, uz
+            if (Math.abs(ay) < 0.9) { ux = -az; uy = 0; uz = ax } else { ux = 0; uy = az; uz = -ay }
+            var ul = Math.sqrt(ux * ux + uy * uy + uz * uz)
+            ux /= ul; uy /= ul; uz /= ul
+            var vx = ay * uz - az * uy
+            var vy = az * ux - ax * uz
+            var vz = ax * uy - ay * ux
+            var depth = (s.z + 1) / 2
+            var lines = []
+            var hairs = []
+            var BR = 24
+            for (var k = 0; k < BR; k++) {
+              var psi = (k / BR) * Math.PI * 2 + (prand() - 0.5) * 0.3
+              var alpha = 0.95 + prand() * 0.45
+              var ca = Math.cos(alpha), sa = Math.sin(alpha)
+              var cp = Math.cos(psi), sp = Math.sin(psi)
+              var bx = ax * ca + (ux * cp + vx * sp) * sa
+              var by = ay * ca + (uy * cp + vy * sp) * sa
+              var bz = az * ca + (uz * cp + vz * sp) * sa
+              var L = 0.27 + prand() * 0.07
+              // A slight outward flare along the bristle.
+              var tipx = bx * L + ax * 0.03
+              var tipy = by * L + ay * 0.03
+              lines.push(0, 0, tipx, -tipy, bz)
+              // Plumose hairs, alternating sides and slowly turning round the
+              // bristle, angled toward its tip.
+              for (var h = 0.3; h < 0.97; h += 0.085) {
+                var px = tipx * h, py = tipy * h
+                var turn = h * 9 + k
+                var wx = (ux * Math.cos(turn) + vx * Math.sin(turn))
+                var wy = (uy * Math.cos(turn) + vy * Math.sin(turn))
+                var hl = 0.028 + h * 0.036
+                for (var side = -1; side <= 1; side += 2) {
+                  hairs.push(
+                    px, -py,
+                    px + (bx * 0.8 + wx * side * 0.6) * hl,
+                    -(py + (by * 0.8 + wy * side * 0.6) * hl),
+                  )
+                }
+              }
+            }
+            // Bounds, in head units, then pixels.
+            var minX = 0, maxX = 0, minY = 0, maxY = 0
+            var grow = function (x, yy) {
+              if (x < minX) minX = x
+              if (x > maxX) maxX = x
+              if (yy < minY) minY = yy
+              if (yy > maxY) maxY = yy
+            }
+            for (var a = 0; a < lines.length; a += 5) grow(lines[a + 2], lines[a + 3])
+            for (var b = 0; b < hairs.length; b += 4) grow(hairs[b + 2], hairs[b + 3])
+            var pad = 6
+            var cw = Math.ceil((maxX - minX) * scale) + pad * 2
+            var ch = Math.ceil((maxY - minY) * scale) + pad * 2
+            var sprite = env.makeCanvas(Math.max(2, cw), Math.max(2, ch))
+            var g = sprite.getContext('2d')
+            var ox = -minX * scale + pad
+            var oy = -minY * scale + pad
+            g.lineCap = 'round'
+            // Sun from high on the left and a little in front: seeds facing it
+            // catch warm light, the far side of the clock goes cool and soft.
+            // Far seeds also take some of the sky's blue — aerial perspective at
+            // the scale of one flower — and sit slightly out of focus, the way a
+            // lens this close to a flower would hold them.
+            var lit = Math.max(0, ax * -0.55 + ay * 0.62 + az * 0.35)
+            var warm = Math.round(232 + depth * 18 + lit * 8)
+            var blue = Math.round(222 + depth * 12 - lit * 14)
+            var px1 = Math.min(dpr, 1.5)
+            if (s.z < -0.25 && 'filter' in g) {
+              g.filter = 'blur(' + ((0.35 + (-s.z - 0.25) * 1.1) * px1).toFixed(2) + 'px)'
+            }
+            g.strokeStyle = 'rgba(255,' + warm + ',' + blue + ',' + (0.24 + depth * 0.2 + lit * 0.08).toFixed(3) + ')'
+            g.lineWidth = 0.42 * px1
+            g.beginPath()
+            for (var c = 0; c < hairs.length; c += 4) {
+              g.moveTo(ox + hairs[c] * scale, oy + hairs[c + 1] * scale)
+              g.lineTo(ox + hairs[c + 2] * scale, oy + hairs[c + 3] * scale)
+            }
+            g.stroke()
+            g.strokeStyle = 'rgba(255,' + Math.min(255, warm + 4) + ',' + blue + ',' + (0.44 + depth * 0.34 + lit * 0.12).toFixed(3) + ')'
+            g.lineWidth = 0.62 * px1
+            g.beginPath()
+            for (var e = 0; e < lines.length; e += 5) {
+              g.moveTo(ox + lines[e] * scale, oy + lines[e + 1] * scale)
+              g.lineTo(ox + lines[e + 2] * scale, oy + lines[e + 3] * scale)
+            }
+            g.stroke()
+            // The little knot where the bristles meet the beak.
+            g.fillStyle = 'rgba(255,250,236,' + (0.5 + depth * 0.4).toFixed(3) + ')'
+            g.beginPath()
+            g.arc(ox, oy, 1.1 * px1, 0, Math.PI * 2)
+            g.fill()
+            s.sprite = sprite
+            s.anchorX = ox
+            s.anchorY = oy
+            s.spriteScale = 1 / px1
+          }
+
+          // ---- State -------------------------------------------------------
+          var furReported = false
+          var progress = 0
+          var shown = 0
+          var ready = false
+          var blown = false
+          var blownAt = 0
+          var windX = 0.8
+          var windY = -0.6
+          var bend = 0
+          var bendVel = 0
+          // The head leans away from a pointer that comes close, as it would
+          // from a breath.
+          var lean = 0
+          var headFade = 1
+          var pointerX = -1e5
+          var pointerY = -1e5
+          // Seeds that rush the lens on the blow, out of focus for a moment as
+          // they pass it. A handful, and only a little larger than life: at
+          // several times a seed's size they read as smears on the glass.
+          var lensSeeds = []
+          // Where the opening has moved the flower to (see follow below).
+          var followX = 0
+          var followY = 0
+          var nextIdle = 0
+          var idleGone = 0
+          // After the blow, until the opening starts: a few seeds still in the
+          // air. On a fast load the opening is under way a fifth of a second
+          // after the blow and none of these ever appear. On a slow phone the
+          // meadow can need several more seconds, and the burst is gone in
+          // three — the sky behind it then held perfectly still, which read
+          // as the page having frozen. They fade in where they are, ride the
+          // breath's own breeze across and out, and stop coming the moment
+          // the opening starts (openingStarted); the ones still up go with
+          // the overlay.
+          var drifters = []
+          var nextDrift = 0
+          var openingStarted = false
+          var DRIFT_AFTER = 1.2
+          var DRIFT_FOR = 45
+          var DRIFT_MAX = touch ? 8 : 12
+          // Held: the visitor has blown, but the meadow behind is not ready to
+          // open yet. Nothing leaves the flower early — shedding seeds one at a
+          // time read as a trickle, not a breath. The head leans into the
+          // breath and its light gathers, and the whole clock goes at once the
+          // moment the opening can follow it.
+          var holding = false
+          var holdAt = 0
+          var running = true
+          var last = performance.now()
+          var began = last
+
+          layout()
+
+          // Where a seed's pappus hub sits relative to the head centre, in px.
+          function hubOffset(s) {
+            var persp = 1 / (1 - s.z * 0.08)
+            return [s.x * s.reach * R * persp, -s.y * s.reach * R * persp]
+          }
+
+          function release(s, now, strength) {
+            var hub = hubOffset(s)
+            var rot = sway(now)
+            var pos = rotateAbout(cx + hub[0], cy + hub[1], rot)
+            // A real breath scatters a clock wide: each seed leaves along the
+            // wind, pushed out along its own radius, and knocked sideways by the
+            // turbulence of the air around the head.
+            var speed = (strength * (260 + Math.pow(rand(), 0.7) * 1000)) * (R / 120)
+            var scatter = (rand() - 0.5) * 460 * strength * (R / 120)
+            s.flying = true
+            s.px = pos[0]
+            s.py = pos[1]
+            s.vx = windX * speed + (hub[0] / R) * 320 * strength - windY * scatter
+            s.vy = windY * speed + (hub[1] / R) * 320 * strength + windX * scatter - 40
+            // Some come toward the lens and swell past it; more shrink away.
+            s.vz = (rand() - 0.55) * 1.5 * strength
+            // No two seeds are the same weight: each has its own drag and its
+            // own lift, so the burst pulls out into a stream of single seeds
+            // instead of travelling as one sheet of fluff.
+            s.drag = 1.1 + rand() * 1.6
+            s.buoy = 30 + rand() * 70
+            // And each turns as it goes, the parachute showing its edge.
+            s.tumble = rand() * Math.PI * 2
+            s.tumbleRate = (rand() - 0.5) * 6
+            s.sc = 1
+            s.rot = rot
+            // In flight a seed rights itself: pappus up, seed hanging below.
+            var axis = Math.atan2(hub[1], hub[0])
+            var target = -Math.PI / 2 - axis
+            while (target - rot > Math.PI) target -= Math.PI * 2
+            while (target - rot < -Math.PI) target += Math.PI * 2
+            s.rotTarget = target
+            s.rotVel = (rand() - 0.5) * 7 * strength
+            s.alpha = 1
+            s.flownAt = now
+            s.gust = strength
+          }
+
+          // Math.random, not rand(): the clock's own sequence stays the one it
+          // was tuned with.
+          function spawnDrifter(now) {
+            var src = seeds[Math.floor(Math.random() * seeds.length)]
+            if (!src || !src.sprite) return
+            var d = Object.create(src)
+            d.sc = 0.5 + Math.random() * 0.5
+            // Across the frame in five to eight seconds; the far ones slower.
+            var speed = Math.max(W, H * 0.6) / (5 + Math.random() * 3) * (0.65 + 0.35 * d.sc)
+            d.tx = windX * speed
+            d.ty = windY * speed * 0.45 - 4
+            d.vx = d.tx
+            d.vy = d.ty
+            d.px = W * (windX >= 0 ? Math.random() * 0.75 : 0.25 + Math.random() * 0.75)
+            d.py = H * (0.22 + Math.random() * 0.7)
+            d.alpha = 0
+            d.peak = 0.55 + d.sc * 0.4
+            d.wander = Math.random() * Math.PI * 2
+            var hub = hubOffset(src)
+            d.rest = -Math.PI / 2 - Math.atan2(hub[1], hub[0])
+            while (d.rest > Math.PI) d.rest -= Math.PI * 2
+            while (d.rest < -Math.PI) d.rest += Math.PI * 2
+            d.rot = d.rest
+            d.rotVel = 0
+            d.tumble = Math.random() * Math.PI * 2
+            d.tumbleRate = (Math.random() - 0.5) * 1.6
+            d.bornAt = now
+            drifters.push(d)
+          }
+
+          function sway(now) {
+            var t = (now - began) / 1000
+            return Math.sin(t * 0.55) * 0.016 + Math.sin(t * 1.27 + 1.1) * 0.006 + bend + lean
+          }
+          function rotateAbout(x, y, angle) {
+            var c = Math.cos(angle)
+            var s = Math.sin(angle)
+            var rx = x - baseX
+            var ry = y - baseY
+            return [baseX + rx * c - ry * s, baseY + rx * s + ry * c]
+          }
+
+          function aim(originX, originY) {
+            var fromX = originX == null ? cx - R * 2 : originX
+            var fromY = originY == null ? cy + R * 1.4 : originY
+            var ddx = cx - fromX
+            var ddy = cy - fromY
+            var dist = Math.sqrt(ddx * ddx + ddy * ddy)
+            if (dist < R * 0.9) {
+              // A tap on the flower itself: blow it away from the side it was
+              // touched, and upward, the way you would lean in and blow.
+              ddx = fromX < cx ? 1 : -1
+              ddy = -0.2
+              dist = Math.sqrt(ddx * ddx + ddy * ddy)
+            }
+            windX = ddx / dist
+            windY = ddy / dist - 0.5
+            var wl = Math.sqrt(windX * windX + windY * windY)
+            windX /= wl
+            windY /= wl
+          }
+
+          function hold(originX, originY) {
+            if (blown || holding || !ready) return
+            holding = true
+            holdAt = performance.now()
+            aim(originX, originY)
+          }
+
+          function blow(originX, originY, auto) {
+            if (blown || (!ready && !auto)) return
+            blown = true
+            var now = performance.now()
+            blownAt = now
+            // A held breath already set the wind from where it began.
+            if (!holding) aim(originX, originY)
+            holding = false
+            bendVel += windX * 0.11
+            for (var i = 0; i < seeds.length; i++) {
+              var s = seeds[i]
+              if (s.flying) continue
+              var hub = hubOffset(s)
+              var downwind = (hub[0] * windX + hub[1] * windY) / R
+              // The breath reaches the near side first and tears through, not
+              // all at once: seeds on the far side hold a moment longer.
+              s.detachAt = now + (0.03 + (0.5 - downwind * 0.5) * 0.42 + rand() * 0.18) * 1000
+              // One or two always hang on.
+              s.stubborn = rand() < 0.035
+            }
+            if (!reduced) {
+              var front = seeds.filter(function (seed) { return seed.sprite && seed.z > 0.2 })
+              var lensCount = Math.min(front.length, W < 600 ? 4 : 6)
+              for (var l = 0; l < lensCount; l++) {
+                var from = front[Math.floor(rand() * front.length)]
+                var hubAt = hubOffset(from)
+                var spread = (l / lensCount) * Math.PI * 2 + rand() * 0.6
+                var speed = (260 + rand() * 420) * (R / 120)
+                lensSeeds.push({
+                  seed: from,
+                  x0: cx + hubAt[0],
+                  y0: cy + hubAt[1],
+                  vx: (Math.cos(spread) * 0.7 + windX * 0.9) * speed,
+                  vy: (Math.sin(spread) * 0.7 + windY * 0.9) * speed,
+                  grow: 1.1 + rand() * 0.7,
+                  rot: rand() * Math.PI * 2,
+                  spin: (rand() - 0.5) * 2.4,
+                  delay: 0.03 + rand() * 0.22,
+                })
+              }
+            }
+          }
+
+          function frame(now) {
+            if (!running) return
+            var dt = Math.min(0.05, (now - last) / 1000)
+            last = now
+            var t = (now - began) / 1000
+
+            // The shown fill chases the real one at a readable pace.
+            shown += (progress - shown) * (1 - Math.exp(-dt * 3.2))
+            if (progress >= 1 && shown > 0.995) shown = 1
+            // Keep the authored growth; report the first fully drawn head so
+            // the button follows the fur rather than shader compilation.
+            var fur = reduced ? 1 : Math.max(shown, smooth(0.05, 1.1, t))
+
+            // The stem is a damped spring.
+            bendVel += (-bend * 14 - bendVel * 3.4) * dt
+            bend += bendVel * dt
+            var leanTarget = 0
+            if (!touch && !blown && !reduced) {
+              var pdx = pointerX - cx
+              var pdy = pointerY - cy
+              var reach = Math.sqrt(pdx * pdx + pdy * pdy) / (R * 3)
+              if (reach < 1) leanTarget = -clamp(pdx / (R * 2), -1, 1) * 0.045 * (1 - reach)
+            }
+            // How far the held breath has gathered: eases in over a second
+            // and a half, then simply holds.
+            var breath = holding && !blown && !reduced ? smooth(0, 1.5, (now - holdAt) / 1000) : 0
+            if (breath > 0) leanTarget = windX * 0.05 * breath
+            lean += (leanTarget - lean) * (1 - Math.exp(-dt * 4))
+
+            if (ready && !blown && !reduced && now > nextIdle) {
+              // The clock is ripe: now and then a breeze takes a seed on its own.
+              nextIdle = now + 2400 + rand() * 1800
+              bendVel += (rand() - 0.3) * 0.035
+              if (idleGone < 4) {
+                var edge = seeds[Math.floor(rand() * seeds.length)]
+                if (edge && !edge.flying && edge.z > -0.2 && edge.sprite) {
+                  idleGone++
+                  release(edge, now, 0.32)
+                }
+              }
+            }
+
+            if (blown) {
+              var since = (now - blownAt) / 1000
+              // The flower goes while the wipe is thickest, so the frame never
+              // shows it dissolving on its own. Measured against the clock, not
+              // accumulated per frame: on a device that stutters through the
+              // meadow's warm-up it must still be gone on time.
+              headFade = reduced
+                ? 1 - smooth(0, 0.4, since)
+                : 1 - smooth(0.26, 0.7, since)
+            }
+
+            ctx.setTransform(1, 0, 0, 1, 0, 0)
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+            // Build a few sprites a frame, in the order they will be needed.
+            if (nextSprite < seeds.length) {
+              var deadline = performance.now() + 4
+              var end = Math.min(nextSprite + 10, seeds.length)
+              do {
+                buildSprite(seeds[nextSprite++])
+              } while (nextSprite < end && performance.now() < deadline)
+            }
+
+            var rot = sway(now)
+            var head = rotateAbout(cx, cy, rot)
+            var hx = head[0]
+            var hy = head[1]
+
+            if (headFade > 0) {
+              ctx.globalAlpha = 1
+              drawBokeh(headFade * smooth(0, 0.6, shown))
+              ctx.globalAlpha = headFade
+              // Sun through the fluff.
+              var ripeness = smooth(0, 1, shown) * (1 + 0.5 * breath)
+              var glow = ctx.createRadialGradient(hx * dpr, hy * dpr, 0, hx * dpr, hy * dpr, R * 1.35 * dpr)
+              glow.addColorStop(0, 'rgba(255,250,232,' + (0.3 * ripeness * (blown ? 0.3 : 1)).toFixed(3) + ')')
+              glow.addColorStop(0.55, 'rgba(255,247,226,' + (0.12 * ripeness * (blown ? 0.3 : 1)).toFixed(3) + ')')
+              glow.addColorStop(1, 'rgba(255,247,226,0)')
+              ctx.fillStyle = glow
+              // Only the glow's own square: a full-canvas fill every frame is a
+              // whole screen of blending for a pool of light a head wide.
+              var glowR = R * 1.35 * dpr
+              ctx.fillRect(hx * dpr - glowR, hy * dpr - glowR, glowR * 2, glowR * 2)
+
+              // Stem: hollow, pale, a little translucent, thickening toward the
+              // ground and flushing brown-red at its foot the way dandelion stems
+              // do. Drawn as a tapered tube in three passes — shadow side, body,
+              // and a lit edge on the sun's side — so it reads round. Its top
+              // follows the head; its lower half barely moves, so it bends rather
+              // than pivots.
+              drawStem(hx, hy, rot)
+              if (followY < -1) {
+                // Pinned to the sky, the flower goes up the screen as the lens
+                // tips down, and the canvas's bottom edge goes with it. Without
+                // this the stem would end there in a hard, level cut.
+                var fadeH = Math.min(H * 0.45, -followY * 1.4 + 40) * dpr
+                var edge = ctx.createLinearGradient(0, canvas.height - fadeH, 0, canvas.height)
+                edge.addColorStop(0, 'rgba(0,0,0,0)')
+                edge.addColorStop(1, 'rgba(0,0,0,1)')
+                ctx.save()
+                ctx.globalAlpha = 1
+                ctx.globalCompositeOperation = 'destination-out'
+                ctx.fillStyle = edge
+                var stemLeft = (Math.min(baseX, hx) - R * 0.6) * dpr
+                ctx.fillRect(stemLeft, canvas.height - fadeH, (Math.abs(hx - baseX) + R * 1.2) * dpr, fadeH)
+                ctx.restore()
+              }
+            }
+
+            // Seeds. Attached ones behind the receptacle first, then the
+            // receptacle, then the rest; flying ones over everything.
+            var drawnCore = false
+            for (var i = 0; i < seeds.length; i++) {
+              var s = seeds[i]
+              if (!s.sprite) continue
+              if (!drawnCore && s.z > 0 && headFade > 0) {
+                drawCore(hx, hy)
+                drawnCore = true
+              }
+              if (s.flying) continue
+              var appear = smooth(s.order * 0.9, s.order * 0.9 + 0.1, fur)
+              if (appear <= 0) continue
+              if (blown && !reduced && !s.stubborn && now >= s.detachAt) {
+                release(s, now, 1)
+                continue
+              }
+              var hub = hubOffset(s)
+              var grow = 0.55 + appear * 0.45
+              var quiver = 0
+              if (!reduced) {
+                var near = 0
+                var ddx = pointerX - (cx + hub[0])
+                var ddy = pointerY - (cy + hub[1])
+                var d2 = ddx * ddx + ddy * ddy
+                if (d2 < R * R * 1.2) near = 1 - Math.sqrt(d2) / (R * 1.1)
+                var breath = blown ? smooth(0, 1, 1 - (s.detachAt - now) / 250) * 0.1 : 0
+                // A slow ripple of breeze crossing the clock left to right.
+                var ripple = 0.55 + 0.45 * Math.sin(t * 1.3 - (hub[0] / R) * 2.2)
+                quiver = Math.sin(t * (2.2 + s.flutter * 2) + s.phase) * (0.012 * ripple + Math.max(0, near) * 0.07 + breath)
+              }
+              var p = rotateAbout(cx + hub[0] * grow, cy + hub[1] * grow, rot)
+              drawSeed(s, p[0], p[1], rot + quiver, grow, appear * headFade, true, 0)
+            }
+            if (!drawnCore && headFade > 0) drawCore(hx, hy)
+
+            var anyFlying = false
+            for (var f = 0; f < seeds.length; f++) {
+              var q = seeds[f]
+              if (!q.flying || q.alpha <= 0) continue
+              anyFlying = true
+              var age = (now - q.flownAt) / 1000
+              var gust = q.gust * (0.35 + 0.65 * Math.exp(-age * 1.6))
+              var drag = q.drag || 1.7
+              q.vx += (windX * 150 * gust - q.vx * drag) * dt
+              q.vy += (windY * 150 * gust - (q.buoy || 60) - q.vy * drag) * dt
+              q.vx += Math.sin(q.py * 0.011 + t * 1.9 + q.phase) * 190 * dt
+              q.vy += Math.cos(q.px * 0.009 - t * 1.6 + q.phase) * 160 * dt
+              q.px += q.vx * dt
+              q.py += q.vy * dt
+              q.sc *= Math.exp(q.vz * dt)
+              q.rotVel += ((q.rotTarget - q.rot) * 8 - q.rotVel * 3 + Math.sin(t * 5 + q.phase) * 2) * dt
+              q.rot += q.rotVel * dt
+              var out = q.px < -R || q.px > W + R || q.py < -R || q.py > H + R
+              if (out || q.sc > 1.9 || age > 3.4) q.alpha -= dt * 2.4
+              var near = q.sc > 1.3 ? 1 - smooth(1.3, 1.9, q.sc) : 1
+              var turn = 0.7 + 0.3 * Math.abs(Math.cos((q.tumble || 0) + age * (q.tumbleRate || 0)))
+              drawSeed(q, q.px, q.py, q.rot, q.sc, clamp(q.alpha, 0, 1) * near, false, age, turn)
+            }
+            if (blown) {
+              var sinceBlow = (now - blownAt) / 1000
+              for (var n = 0; n < lensSeeds.length; n++) {
+                var lens = lensSeeds[n]
+                // Pure functions of time since the blow, like the flower's fade.
+                var lensAge = sinceBlow - lens.delay
+                if (lensAge <= 0 || lensAge > 0.95 || !lens.seed.sprite) continue
+                anyFlying = true
+                var lensScale = Math.exp(lens.grow * lensAge)
+                var lensAlpha = 0.75 * smooth(0, 0.12, lensAge) * (1 - smooth(0.4, 0.9, lensAge))
+                if (lensAlpha <= 0.003) continue
+                var k = lensScale * dpr * lens.seed.spriteScale
+                ctx.globalAlpha = lensAlpha
+                ctx.setTransform(1, 0, 0, 1, (lens.x0 + lens.vx * lensAge) * dpr, (lens.y0 + lens.vy * lensAge) * dpr)
+                ctx.rotate(lens.rot + lens.spin * lensAge)
+                ctx.scale(k, k)
+                ctx.drawImage(lens.seed.sprite, -lens.seed.anchorX, -lens.seed.anchorY)
+                ctx.setTransform(1, 0, 0, 1, 0, 0)
+              }
+            }
+            if (blown && !reduced) {
+              var waited = (now - blownAt) / 1000
+              var waiting = !openingStarted && waited < DRIFT_FOR
+              if (waiting && waited > DRIFT_AFTER && drifters.length < DRIFT_MAX && now > nextDrift) {
+                spawnDrifter(now)
+                nextDrift = now + (400 + Math.random() * 350)
+              }
+              for (var g = drifters.length - 1; g >= 0; g--) {
+                var dr = drifters[g]
+                var life = (now - dr.bornAt) / 1000
+                // Easing toward the breeze, with a slow meander of its own.
+                var ease = 1 - Math.exp(-dt * 0.9)
+                dr.vx += (dr.tx - dr.vx) * ease + Math.sin(t * 0.8 + dr.wander) * 18 * dt
+                dr.vy += (dr.ty - dr.vy) * ease + Math.cos(t * 0.65 + dr.wander * 1.7) * 14 * dt
+                dr.px += dr.vx * dt
+                dr.py += dr.vy * dt
+                dr.rotVel += ((dr.rest + Math.sin(t * 1.2 + dr.wander) * 0.22 - dr.rot) * 4 - dr.rotVel * 2.4) * dt
+                dr.rot += dr.rotVel * dt
+                var gone = dr.px < -R || dr.px > W + R || dr.py < -R || dr.py > H + R
+                dr.alpha = gone ? dr.alpha - dt * 1.5 : Math.min(dr.peak, dr.alpha + dt * 0.9)
+                if (gone && dr.alpha <= 0) {
+                  drifters.splice(g, 1)
+                  continue
+                }
+                // A resize rebuilds sprites a few a frame; skip until it is back.
+                if (!dr.sprite) continue
+                var edgeOn = 0.72 + 0.28 * Math.abs(Math.cos(dr.tumble + life * dr.tumbleRate))
+                drawSeed(dr, dr.px, dr.py, dr.rot, dr.sc, Math.max(0, dr.alpha), false, 2, edgeOn)
+              }
+              if (waiting || drifters.length) anyFlying = true
+            }
+            ctx.globalAlpha = 1
+            if (!furReported && fur >= 1) {
+              furReported = true
+              env.onFurReady()
+            }
+
+            if (blown && headFade <= 0 && !anyFlying) {
+              running = false
+              return
+            }
+            env.raf(frame)
+          }
+
+          function bezierPoint(p0, p1, p2, p3, t) {
+            var u = 1 - t
+            return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3
+          }
+
+          function drawStem(hx, hy, rot) {
+            var x0 = baseX, y0 = baseY
+            var x1 = baseX + (cx - baseX) * 0.1, y1 = baseY - (baseY - cy) * 0.45
+            var x2 = hx - R * 0.35 + (hx - cx) * 0.4, y2 = hy + R * 1.3
+            var x3 = hx, y3 = hy + R * 0.05
+            var steps = 26
+            var passes = [
+              { width: 1, shift: 0.18, color: [96, 122, 66], alpha: 1 },
+              { width: 0.72, shift: -0.04, color: [150, 176, 112], alpha: 1 },
+              { width: 0.2, shift: -0.26, color: [222, 234, 192], alpha: 0.55 },
+            ]
+            // The centreline and its normals, once for all three passes.
+            var line = []
+            for (var i = 0; i <= steps; i++) {
+              var t = i / steps
+              line.push(bezierPoint(x0, x1, x2, x3, t), bezierPoint(y0, y1, y2, y3, t))
+            }
+            var normals = []
+            for (var j = 0; j <= steps; j++) {
+              var a = Math.max(0, j - 1) * 2
+              var b = Math.min(steps, j + 1) * 2
+              var dx = line[b] - line[a], dy = line[b + 1] - line[a + 1]
+              var len = Math.sqrt(dx * dx + dy * dy) || 1
+              normals.push(-dy / len, dx / len)
+            }
+            // Each pass is one filled, tapering outline rather than a chain of
+            // round-capped strokes: the caps overlapped, and as the flower
+            // faded the doubled joints showed as beads down the stem.
+            for (var pass = 0; pass < passes.length; pass++) {
+              var spec = passes[pass]
+              // Red-brown at the foot, green by a third of the way up.
+              var foot = function (mix) {
+                return 'rgba(' +
+                  Math.round(spec.color[0] + (140 - spec.color[0]) * mix) + ',' +
+                  Math.round(spec.color[1] + (104 - spec.color[1]) * mix) + ',' +
+                  Math.round(spec.color[2] + (78 - spec.color[2]) * mix) + ',' + spec.alpha + ')'
+              }
+              var shade = ctx.createLinearGradient(x0 * dpr, y0 * dpr, x3 * dpr, y3 * dpr)
+              shade.addColorStop(0, foot(0.55))
+              shade.addColorStop(0.05, foot(0.55))
+              shade.addColorStop(0.22, foot(0.28))
+              shade.addColorStop(0.4, foot(0))
+              shade.addColorStop(1, foot(0))
+              ctx.fillStyle = shade
+              ctx.beginPath()
+              for (var k = 0; k <= steps; k++) {
+                var half = R * (0.1 - 0.035 * (k / steps)) * spec.width * 0.5
+                var off = R * 0.1 * spec.shift
+                var nx = normals[k * 2], ny = normals[k * 2 + 1]
+                var px = line[k * 2] + nx * (off + half)
+                var py = line[k * 2 + 1] + ny * (off + half)
+                if (k === 0) ctx.moveTo(px * dpr, py * dpr)
+                else ctx.lineTo(px * dpr, py * dpr)
+              }
+              for (var m = steps; m >= 0; m--) {
+                var halfBack = R * (0.1 - 0.035 * (m / steps)) * spec.width * 0.5
+                var offBack = R * 0.1 * spec.shift
+                ctx.lineTo(
+                  (line[m * 2] + normals[m * 2] * (offBack - halfBack)) * dpr,
+                  (line[m * 2 + 1] + normals[m * 2 + 1] * (offBack - halfBack)) * dpr,
+                )
+              }
+              ctx.closePath()
+              ctx.fill()
+            }
+            drawBracts(hx, hy, rot)
+          }
+
+          // The involucral bracts: narrow green sepals under a ripe clock,
+          // folded right back and curling down the stem.
+          function drawBracts(hx, hy, rot) {
+            var count = 11
+            for (var k = 0; k < count; k++) {
+              var around = (k / count) * Math.PI * 2 + 0.3
+              var side = Math.cos(around)
+              var front = Math.sin(around)
+              var spread = side * R * 0.085
+              var length = R * (0.26 + (k % 3) * 0.04)
+              var rootX = hx + spread * 0.6
+              var rootY = hy + R * 0.075
+              var tipX = hx + spread * 1.5 + Math.sin(rot) * R * 0.05
+              var tipY = rootY + length
+              var bellyX = hx + spread * 2.3
+              var bellyY = rootY + length * 0.25
+              var width = R * 0.026
+              var shade = front > 0 ? 1 : 0.78
+              ctx.fillStyle = 'rgba(' + Math.round(118 * shade) + ',' + Math.round(146 * shade) + ',' + Math.round(80 * shade) + ',0.95)'
+              ctx.beginPath()
+              ctx.moveTo((rootX - width) * dpr, rootY * dpr)
+              ctx.quadraticCurveTo((bellyX - width) * dpr, bellyY * dpr, tipX * dpr, tipY * dpr)
+              ctx.quadraticCurveTo((bellyX + width) * dpr, (bellyY + width) * dpr, (rootX + width) * dpr, rootY * dpr)
+              ctx.closePath()
+              ctx.fill()
+            }
+          }
+
+          // Other clocks further off, far out of focus: soft discs of light
+          // behind the flower, the depth a real photograph of one would have.
+          var BOKEH = [
+            { x: -0.62, y: 0.34, r: 0.55, a: 0.16 },
+            { x: 0.7, y: 0.18, r: 0.42, a: 0.12 },
+            { x: 0.5, y: 0.58, r: 0.7, a: 0.1 },
+            { x: -0.3, y: 0.72, r: 0.36, a: 0.09 },
+          ]
+          function drawBokeh(alpha) {
+            if (alpha <= 0) return
+            for (var i = 0; i < BOKEH.length; i++) {
+              var b = BOKEH[i]
+              var bx = (cx + b.x * W * 0.5 + lean * -R * 6) * dpr
+              var by = (cy + b.y * H * 0.5) * dpr
+              var br = b.r * R * dpr
+              var disc = ctx.createRadialGradient(bx, by, br * 0.2, bx, by, br)
+              disc.addColorStop(0, 'rgba(255,250,236,' + (b.a * 0.55 * alpha).toFixed(3) + ')')
+              disc.addColorStop(0.82, 'rgba(255,250,236,' + (b.a * alpha).toFixed(3) + ')')
+              disc.addColorStop(1, 'rgba(255,250,236,0)')
+              ctx.fillStyle = disc
+              ctx.beginPath()
+              ctx.arc(bx, by, br, 0, Math.PI * 2)
+              ctx.fill()
+            }
+          }
+
+          // The receptacle: a small domed, pitted boss, mostly hidden until the
+          // seeds leave it bare.
+          function drawCore(hx, hy) {
+            // Seen through the fluff while the clock is whole, so it is softer
+            // then; bare once the seeds have gone.
+            ctx.globalAlpha = headFade * (blown ? 1 : 0.55)
+            var r = R * 0.075 * dpr
+            var g = ctx.createRadialGradient(hx * dpr - r * 0.3, hy * dpr - r * 0.4, r * 0.1, hx * dpr, hy * dpr, r)
+            g.addColorStop(0, '#e6e0bd')
+            g.addColorStop(0.7, '#c2b98d')
+            g.addColorStop(1, '#9c936a')
+            ctx.fillStyle = g
+            ctx.beginPath()
+            ctx.arc(hx * dpr, hy * dpr, r, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.fillStyle = 'rgba(110,96,62,0.55)'
+            for (var k = 0; k < 14; k++) {
+              var a = k * 2.4
+              var d = Math.sqrt(k / 14) * r * 0.8
+              ctx.beginPath()
+              ctx.arc(hx * dpr + Math.cos(a) * d, hy * dpr + Math.sin(a) * d, r * 0.07, 0, Math.PI * 2)
+              ctx.fill()
+            }
+          }
+
+          // One seed: its beak and achene drawn live (they are only lines), its
+          // pappus from the sprite. `angle` turns the whole seed in the image
+          // plane — the head's sway while attached, its own tumble in flight.
+          function drawSeed(s, x, y, angle, scale, alpha, attached, age, turn) {
+            // Resize clears sprites while their replacements are built over frames.
+            if (alpha <= 0.002 || !s.sprite) return
+            var hub = hubOffset(s)
+            var hubLen = Math.sqrt(hub[0] * hub[0] + hub[1] * hub[1]) || 1
+            var dir = Math.atan2(-hub[1], -hub[0]) + angle
+            var axX = Math.cos(dir)
+            var axY = Math.sin(dir)
+            // The axis as projected: short for seeds pointing at the lens. In
+            // flight the seed turns side-on, so its beak lengthens into view.
+            var along = hubLen / s.reach
+            if (!attached) along += (R * 0.9 - along) * smooth(0, 0.7, age)
+            var beak = along * 0.46 * scale
+            var achene = along * 0.13 * scale
+            var bx = x + axX * beak
+            var by = y + axY * beak
+            ctx.globalAlpha = alpha
+            ctx.lineCap = 'round'
+            ctx.strokeStyle = 'rgba(238,229,203,0.85)'
+            ctx.lineWidth = 0.7 * dpr * Math.max(0.6, scale)
+            ctx.beginPath()
+            ctx.moveTo(x * dpr, y * dpr)
+            ctx.lineTo(bx * dpr, by * dpr)
+            ctx.stroke()
+            // In flight the achene is a small, sunlit fleck, not a dark bar:
+            // dozens of dark bars against the sky read as rain.
+            ctx.strokeStyle = attached ? '#8a6f43' : 'rgba(176,146,98,0.75)'
+            ctx.lineWidth = (attached ? 1.9 : 1.3) * dpr * Math.max(0.6, scale)
+            ctx.beginPath()
+            ctx.moveTo(bx * dpr, by * dpr)
+            ctx.lineTo((bx + axX * achene) * dpr, (by + axY * achene) * dpr)
+            ctx.stroke()
+            var k = scale * dpr * s.spriteScale
+            ctx.setTransform(1, 0, 0, 1, x * dpr, y * dpr)
+            ctx.rotate(angle)
+            // A parachute turning in flight narrows as it shows its edge.
+            ctx.scale(k * (turn || 1), k)
+            ctx.drawImage(s.sprite, -s.anchorX, -s.anchorY)
+            ctx.setTransform(1, 0, 0, 1, 0, 0)
+          }
+
+          env.raf(frame)
+
+          return {
+            layout: function (w, h, pixelRatio) {
+              size = { w: w, h: h, dpr: pixelRatio }
+              layout()
+            },
+            setProgress: function (value) {
+              progress = clamp(Number(value) || 0, progress, 1)
+            },
+            setReady: function (value) {
+              ready = !!value
+              if (ready) {
+                nextIdle = performance.now() + 1600
+              }
+            },
+            blow: function (originX, originY, auto) {
+              blow(originX, originY, auto)
+            },
+            hold: function (originX, originY) {
+              hold(originX, originY)
+            },
+            pointer: function (x, y) {
+              pointerX = x
+              pointerY = y
+            },
+            follow: function (x, y) {
+              followX = x
+              followY = y
+            },
+            opening: function () { openingStarted = true },
+            stop: function () { running = false },
+          }
+        }
+
+        // The worker's side: say whether it can draw, then take the canvas and
+        // forward every call to the renderer.
+        function dandelionWorker() {
+          var renderer = null
+          var offscreen = null
+          var drawable = false
+          try {
+            drawable = !!new OffscreenCanvas(1, 1).getContext('2d')
+          } catch (error) { /* reported below */ }
+          self.onmessage = function (event) {
+            var message = event.data
+            if (message.type === 'init') {
+              offscreen = message.canvas
+              renderer = dandelionRenderer(message.canvas, {
+                reduced: message.reduced,
+                touch: message.touch,
+                size: message.size,
+                onFurReady: function () { self.postMessage({ type: 'fur-ready' }) },
+                makeCanvas: function (w, h) { return new OffscreenCanvas(w, h) },
+                raf: typeof self.requestAnimationFrame === 'function'
+                  ? function (callback) { return self.requestAnimationFrame(callback) }
+                  : function (callback) { return setTimeout(function () { callback(performance.now()) }, 16) },
+              })
+              return
+            }
+            if (renderer && renderer[message.type]) renderer[message.type].apply(null, message.args || [])
+            // Give the memory back now. The thread itself lives on, idle, until
+            // the page says otherwise (see release, below).
+            if (message.type === 'stop' && offscreen) {
+              offscreen.width = 1
+              offscreen.height = 1
+            }
+          }
+          self.postMessage({ type: drawable ? 'alive' : 'unsupported' })
+        }
+
+        var viewport = function () {
+          return { w: window.innerWidth, h: window.innerHeight, dpr: Math.min(2, window.devicePixelRatio || 1) }
+        }
+
+        // Calls made before the renderer has a home wait here, in order.
+        var stopped = false
+        var queued = []
+        var deliver = null
+        var endRenderer = function () { }
+        var send = function (name, args) {
+          if (deliver) deliver(name, args)
+          else queued.push([name, args])
+        }
+        var adopt = function (target) {
+          if (stopped) return
+          deliver = target
+          for (var q = 0; q < queued.length; q++) target(queued[q][0], queued[q][1])
+          queued = null
+        }
+        var drawHere = function () {
+          var renderer = dandelionRenderer(canvas, {
+            reduced: reduced,
+            touch: touch,
+            size: viewport(),
+            onFurReady: furReady,
+            makeCanvas: function (w, h) {
+              var sprite = document.createElement('canvas')
+              sprite.width = w
+              sprite.height = h
+              return sprite
+            },
+            raf: function (callback) { return window.requestAnimationFrame(callback) },
+          })
+          adopt(renderer
+            ? function (name, args) { renderer[name].apply(null, args) }
+            : function () { })
+          signalDrawing()
+        }
+
+        // The canvas is handed over only once the worker has said it can draw
+        // on it: a transferred canvas cannot come back, and a worker that fails
+        // after taking it would leave the loading screen empty. Anything short
+        // of a working worker draws here instead, exactly as it always has.
+        var canUseWorker = typeof Worker === 'function' &&
+          typeof OffscreenCanvas === 'function' &&
+          typeof canvas.transferControlToOffscreen === 'function' &&
+          typeof Blob === 'function' && window.URL && typeof URL.createObjectURL === 'function'
+        if (!canUseWorker) {
+          drawHere()
+        } else {
+          try {
+            var source = dandelionGeometry.toString() + '\n' + dandelionRenderer.toString() +
+              '\n(' + dandelionWorker.toString() + ')()'
+            var url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }))
+            var worker = new Worker(url)
+            var settled = false
+            var fallBack = function () {
+              if (settled) {
+                // A worker can fail after taking ownership of the canvas.
+                // Keep the HTML button usable even if its drawing is lost.
+                if (!stopped) furReady()
+                return
+              }
+              settled = true
+              window.clearTimeout(giveUp)
+              try { worker.terminate() } catch (error) { /* already gone */ }
+              URL.revokeObjectURL(url)
+              if (!stopped) drawHere()
+            }
+            var giveUp = window.setTimeout(fallBack, 1500)
+            worker.onerror = fallBack
+            worker.onmessage = function (event) {
+              if (stopped) { worker.terminate(); return }
+              if (event.data && event.data.type === 'fur-ready') {
+                furReady()
+                return
+              }
+              if (settled) return
+              if (!event.data || event.data.type !== 'alive') {
+                fallBack()
+                return
+              }
+              settled = true
+              window.clearTimeout(giveUp)
+              URL.revokeObjectURL(url)
+              var offscreen = canvas.transferControlToOffscreen()
+              worker.postMessage({
+                type: 'init',
+                canvas: offscreen,
+                reduced: reduced,
+                touch: touch,
+                size: viewport(),
+              }, [offscreen])
+              adopt(function (name, args) { worker.postMessage({ type: name, args: args }) })
+              signalDrawing()
+              // Ending the thread makes the main thread wait for it and its
+              // canvas to tear down: 60 ms, which was a dropped frame in the
+              // middle of the opening. So it is not ended here. The opening
+              // calls release under the cloud's full cover, where a held frame
+              // is a white frame, and the timer is only a backstop for a visit
+              // that never gets there.
+              endRenderer = function () {
+                var end = function () {
+                  window.__bootRelease = null
+                  worker.terminate()
+                }
+                window.__bootRelease = end
+                window.setTimeout(function () { if (window.__bootRelease === end) end() }, 30000)
+              }
+            }
+          } catch (error) {
+            drawHere()
+          }
+        }
+
+        // ---- This thread: input, state, and the page's API -------------------
+        var geometry = dandelionGeometry(window.innerWidth, window.innerHeight)
+        // Offered once the flower is drawn and the meadow is ready for the breath.
+        var furDone = false
+        var worldDone = false
+        var wanted = null
+        function offer() {
+          if (!furDone || !worldDone) return
+          window.__bootDandelion?.setReady(true)
+          // Someone who already tapped has already waited.
+          if (wanted) tap(wanted.x, wanted.y)
+        }
+        function furReady() {
+          furDone = true
+          offer()
+        }
+        var ready = false
+        var blown = false
+        var handlers = []
+        var blowEvent = null
+        var followX = 0
+        var followY = 0
+
+        var listeners = new AbortController()
+        window.addEventListener('resize', function () {
+          var next = viewport()
+          geometry = dandelionGeometry(next.w, next.h)
+          send('layout', [next.w, next.h, next.dpr])
+        }, { signal: listeners.signal })
+
+        // The blow is decided here, inside the visitor's own event, because
+        // that is the only place the page may start its sound. The renderer
+        // is told to scatter the seeds; the direction reported to the opening
+        // is the same one it computes.
+        // The sound engine can only be unlocked inside the visitor's own tap
+        // (Safari will not resume audio from a later task). The meadow's code
+        // may not have loaded yet when that tap comes, so if nothing is
+        // listening, open the audio here and leave it for the engine to adopt
+        // (ambientEngine.createContext); if it is listening, let it start now.
+        function openAudio() {
+          if (window.__bootAudioContext) return
+          try {
+            var Context = window.AudioContext || window.webkitAudioContext
+            if (Context) {
+              var context = new Context()
+              var resumed = context.resume && context.resume()
+              if (resumed && resumed.catch) resumed.catch(function () { /* the menu's first tap tries again */ })
+              window.__bootAudioContext = context
+            }
+          } catch (error) { /* silence is the worst of it */ }
+        }
+
+        // Scatter in the input event; scene preparation must never hold a tap.
+        function tap(originX, originY) {
+          if (!ready || blown) return
+          if (!handlers.length) openAudio()
+          blow(originX, originY, false)
+        }
+
+        function blow(originX, originY, auto) {
+          if (blown || (!ready && !auto)) return
+          blown = true
+          var fromX = originX == null ? geometry.cx - geometry.R * 2 : originX
+          var fromY = originY == null ? geometry.cy + geometry.R * 1.4 : originY
+          var ddx = geometry.cx - fromX
+          var ddy = geometry.cy - fromY
+          if (Math.sqrt(ddx * ddx + ddy * ddy) < geometry.R * 0.9) ddx = fromX < geometry.cx ? 1 : -1
+          send('blow', [originX, originY, !!auto])
+          root.setAttribute('data-blown', '')
+          root.removeAttribute('data-ready')
+          blowEvent = { direction: ddx >= 0 ? 1 : -1, auto: !!auto, x: fromX, y: fromY, at: performance.now() }
+          for (var h = 0; h < handlers.length; h++) {
+            try { handlers[h](blowEvent) } catch (error) { /* never block the blow */ }
+          }
+        }
+
+        if (!touch) {
+          window.addEventListener('pointermove', function (event) {
+            send('pointer', [event.clientX, event.clientY])
+          }, { passive: true, signal: listeners.signal })
+        }
+        root.addEventListener('pointerdown', function (event) {
+          tap(event.clientX, event.clientY)
+        })
+        // A tap before the flower is ripe counts: it opens the sound, which only
+        // a tap can do, and the flower blows the moment it can.
+        window.addEventListener('pointerdown', function (event) {
+          if (ready || blown || wanted) return
+          wanted = { x: event.clientX, y: event.clientY }
+          openAudio()
+        }, { signal: listeners.signal })
+        if (button) {
+          button.addEventListener('click', function () {
+            tap(null, null)
+          })
+        }
+        var PASSIVE = { Shift: 1, Control: 1, Alt: 1, Meta: 1, CapsLock: 1, Tab: 1 }
+        window.addEventListener('keydown', function (event) {
+          if (!ready || blown || event.repeat || event.metaKey || event.ctrlKey || PASSIVE[event.key]) return
+          tap(null, null)
+        }, { signal: listeners.signal })
+
+        window.__bootDandelion = {
+          setProgress: function (value) {
+            send('setProgress', [value])
+          },
+          setReady: function (value) {
+            ready = !!value
+            send('setReady', [ready])
+            if (ready && !blown) root.setAttribute('data-ready', '')
+            else root.removeAttribute('data-ready')
+          },
+          worldReady: function () {
+            worldDone = true
+            offer()
+          },
+          setMuted: function (muted) {
+            if (muted) root.setAttribute('data-muted', '')
+            else root.removeAttribute('data-muted')
+          },
+          onBlow: function (handler) {
+            handlers = [handler]
+            if (blowEvent) handler(blowEvent)
+          },
+          blow: function (options) {
+            blow(null, null, !!(options && options.auto))
+          },
+          isBlown: function () { return blown },
+          head: function () {
+            return {
+              x: geometry.cx / Math.max(1, geometry.W),
+              y: geometry.cy / Math.max(1, geometry.H),
+              r: geometry.R / Math.max(1, geometry.H),
+            }
+          },
+          follow: function (x, y) {
+            if (!blown || reduced) return
+            x = Math.round(x * 2) / 2
+            y = Math.round(y * 2) / 2
+            if (x === followX && y === followY) return
+            followX = x
+            followY = y
+            canvas.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)'
+            send('follow', [x, y])
+          },
+          // The meadow's opening has begun: no more drifting seeds.
+          opening: function () {
+            send('opening', [])
+          },
+          stop: function () {
+            if (stopped) return
+            stopped = true
+            send('stop', [])
+            endRenderer()
+            listeners.abort()
+            deliver = function () {}
+            handlers = []
+            window.__bootDandelion = null
+          },
+        }
+
+      })()
+  </script>
+  <script>
+    (function () {
+      var stage = document.getElementById('boot__stage')
+      var boot = document.getElementById('boot')
+      var lastProgress = ''
+      var since = performance.now()
+      function resetClock() { since = performance.now() }
+      document.addEventListener('visibilitychange', resetClock)
+      function stopWatching() {
+        clearInterval(timer)
+        document.removeEventListener('visibilitychange', resetClock)
+      }
+      var timer = setInterval(function () {
+        var page = document.documentElement
+        if (!boot.isConnected || boot.hasAttribute('data-done') || page.dataset.webgl || page.dataset.meadow) {
+          stopWatching()
+          return
+        }
+        var progress = stage.getAttribute('aria-valuenow') + boot.hasAttribute('data-warming') + boot.hasAttribute('data-blown')
+        if (progress !== lastProgress || document.hidden) resetClock()
+        lastProgress = progress
+        if (performance.now() - since < 60000) return
+        stopWatching()
+        page.dataset.meadow = 'crashed'
+        document.getElementById('boot-fallback').removeAttribute('inert')
+        document.getElementById('boot-fallback').removeAttribute('aria-hidden')
+        window.__bootDandelion?.stop()
+        window.dispatchEvent(new Event('meadow:boot-stalled'))
+      }, 1000)
+    })()
+  </script>
+  <script>
+    (function () {
+      // Downloads first, as soon as the first frame is out: fetching and
+      // compiling a module does not run it, so the files can arrive while the
+      // dandelion settles in.
+      var preloaded = false
+      function preload() {
+        if (preloaded) return
+        preloaded = true
+        var head = document.head
+        var preloads = []
+        preloads.forEach(function (href) {
+          var link = document.createElement('link')
+          link.rel = 'modulepreload'
+          link.crossOrigin = ''
+          link.href = href
+          head.appendChild(link)
+        })
+        // The physics engine's wasm (rapierWasmAsset puts its URL in <head>).
+        if (window.__rapierWasm) {
+          var wasm = document.createElement('link')
+          wasm.rel = 'preload'
+          wasm.as = 'fetch'
+          wasm.type = 'application/wasm'
+          wasm.crossOrigin = 'anonymous'
+          wasm.fetchPriority = 'low'
+          wasm.href = window.__rapierWasm
+          head.appendChild(wasm)
+        }
+      }
+      // Running them waits for the flower to be drawing (the inline
+      // dandelion script signals it), capped so nothing can hold the meadow
+      // back for long.
+      var started = false
+      function start() {
+        if (started) return
+        started = true
+        preload()
+        if (window.__meadowEntry) {
+          window.__meadowEntry()
+          return
+        }
+        var script = document.createElement('script')
+        script.type = 'module'
+        script.crossOrigin = ''
+        script.src = '/src/main.js'
+        document.head.appendChild(script)
+      }
+      function whenDrawing() {
+        if (window.__bootDrawing) setTimeout(start, 0)
+        else {
+          window.addEventListener('meadow:boot-drawing', function () { setTimeout(start, 0) })
+          setTimeout(start, 1200)
+        }
+      }
+      // After the first contentful paint has actually been presented, not
+      // just after a requestAnimationFrame: rAF runs before its frame is
+      // painted, so the downloads used to begin a few milliseconds ahead of
+      // the paint, and Lighthouse's phone simulation then counted all of them
+      // as something the largest paint (the corner line) waited for — 5 s of
+      // simulated LCP for text on the first frame. The paint observer fires
+      // once that frame is on screen; the timer is the cap for a browser that
+      // has no such observer or never reports.
+      function go() { preload(); whenDrawing() }
+      if (document.visibilityState !== 'visible') go()
+      else {
+        var painted = false
+        try {
+          var observer = new PerformanceObserver(function (list) {
+            if (painted) return
+            if (!list.getEntriesByName('first-contentful-paint').length) return
+            painted = true
+            observer.disconnect()
+            setTimeout(go, 0)
+          })
+          observer.observe({ type: 'paint', buffered: true })
+        } catch (error) { /* the timer below starts it */ }
+        setTimeout(go, 400)
+      }
+    })()
+  </script>
+</body>
+
+</html>

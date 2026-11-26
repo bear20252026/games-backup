@@ -1,0 +1,14 @@
+{
+  "name": "curllmooha-rebuild-tools",
+  "private": true,
+  "type": "module",
+  "description": "把线上 bundle 拆回可编辑工程的一次性构建脚本",
+  "dependencies": {
+    "@babel/generator": "^7.26.2",
+    "@babel/parser": "^7.26.2",
+    "@babel/traverse": "^7.26.2",
+    "@babel/types": "^7.26.0",
+    "prettier": "^3.3.3",
+    "puppeteer-core": "^25.18.1"
+  }
+}
